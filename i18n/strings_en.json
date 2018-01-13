@@ -1,0 +1,11 @@
+{
+  "PLUGIN_NAME": "Personal Radio",
+  "WAIT_FOR_RADIO_CHANNEL":"Please Wait for radio channel....",
+  "STOP_RADIO_CHANNEL": "Stopped personal radio channel",
+  "ERROR_KBS_URL": "There is a problem in KBS URL.",
+  "KBS1_RADIO": "KBS1 Radio",
+  "KBS2_RADIO": "KBS2 Radio",
+  "KBS3_RADIO": "KBS3 Radio",
+  "KBS_UNION": "KBS Union",
+  "KBS_WORLD": "KBS World"
+}

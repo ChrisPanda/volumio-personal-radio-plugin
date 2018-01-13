@@ -1,0 +1,11 @@
+{
+  "PLUGIN_NAME": "개인 라디오",
+  "WAIT_FOR_RADIO_CHANNEL":"라디오 채널 스트림 준비중. 잠시 기다려 주세요....",
+  "STOP_RADIO_CHANNEL": "라디오 채널 스트림 중지합니다.",
+  "ERROR_KBS_URL": "KBS URL 주소에 문제가 있습니다.",
+  "KBS1_RADIO": "KBS1 라디오",
+  "KBS2_RADIO": "KBS2 라디오",
+  "KBS3_RADIO": "KBS3 라디오",
+  "KBS_UNION": "KBS 한민족방송",
+  "KBS_WORLD": "KBS 월드"
+}
