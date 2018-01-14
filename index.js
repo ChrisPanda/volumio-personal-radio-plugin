@@ -1,17 +1,11 @@
 'use strict';
 
-// This Volumio plugin provides KBS(Korean Radio Station) and Linn radio.
+// This Volumio plugin provides Korean Radios (KBS, MBC) and Linn radio.
 
 var libQ = require('kew');
 var fs = require('fs-extra');
 var config = require('v-conf');
 var unirest = require('unirest');
-
-var KbsChannelName = [];
-var LinnChannelUri = [];
-var LinnChannelName = [];
-var serviceName = "personal_radio";
-var baseKbsStreamUrl = 'http://kong.kbs.co.kr/live_player/channelMini.php';
 
 module.exports = ControllerPersonalRadio;
 
@@ -50,22 +44,47 @@ ControllerPersonalRadio.prototype.onStart = function() {
   self.loadRadioI18nStrings();
   self.addToBrowseSources();
 
-  LinnChannelUri.push(self.config.get("linnJazzUrl"));
-  LinnChannelUri.push(self.config.get("linnRadioUrl"));
-  LinnChannelUri.push(self.config.get("linnClassicUrl"));
+  self.serviceName = "personal_radio";
 
-  LinnChannelName.push(self.config.get("linnJazzName"));
-  LinnChannelName.push(self.config.get("linnRadioName"));
-  LinnChannelName.push(self.config.get("linnClassicName"));
+  self.linn = {
+        uri: [],
+        name: []
+  };
+  self.linn.uri.push(self.config.get("linnJazzUrl"));
+  self.linn.uri.push(self.config.get("linnRadioUrl"));
+  self.linn.uri.push(self.config.get("linnClassicUrl"));
 
-  KbsChannelName.push('KBS1 FM');
-  KbsChannelName.push('KBS2 FM');
-  KbsChannelName.push(self.getRadioI18nString('KBS1_RADIO'));
-  KbsChannelName.push(self.getRadioI18nString('KBS2_RADIO'));
-  KbsChannelName.push(self.getRadioI18nString('KBS3_RADIO'));
-  KbsChannelName.push('KBS DMB');
-  KbsChannelName.push(self.getRadioI18nString('KBS_UNION'));
-  KbsChannelName.push(self.getRadioI18nString('KBS_WORLD'));
+  self.linn.name.push(self.config.get("linnJazzName"));
+  self.linn.name.push(self.config.get("linnRadioName"));
+  self.linn.name.push(self.config.get("linnClassicName"));
+
+  self.KbsChannelName = [];
+  self.KbsChannelName.push('KBS1 FM');
+  self.KbsChannelName.push('KBS2 FM');
+  self.KbsChannelName.push(self.getRadioI18nString('KBS1_RADIO'));
+  self.KbsChannelName.push(self.getRadioI18nString('KBS2_RADIO'));
+  self.KbsChannelName.push(self.getRadioI18nString('KBS3_RADIO'));
+  self.KbsChannelName.push('KBS DMB');
+  self.KbsChannelName.push(self.getRadioI18nString('KBS_UNION'));
+  self.KbsChannelName.push(self.getRadioI18nString('KBS_WORLD'));
+
+  self.baseKbsStreamUrl = 'http://kong.kbs.co.kr/live_player/channelMini.php';
+  self.baseMbcStreamUrl = 'http://miniplay.imbc.com/WebLiveURL.ashx';
+
+  self.mbc = [
+    {
+        title: self.getRadioI18nString('MBC_STANDARD'),
+        channel: 'sfm'
+    },
+    {
+        title: self.getRadioI18nString('MBC_FM4U'),
+        channel: 'mfm'
+    },
+    {
+        title: self.getRadioI18nString('MBC_CHANNEL_M'),
+        channel: 'chm'
+    }
+  ];
 
   return libQ.resolve();
 };
@@ -104,7 +123,7 @@ ControllerPersonalRadio.prototype.addToBrowseSources = function () {
 
   self.commandRouter.volumioAddToBrowseSources({
       name: self.getRadioI18nString('PLUGIN_NAME'),
-      uri: 'root',
+      uri: 'kradio',
       plugin_type: 'music_service',
       plugin_name: "personal_radio",
       albumart: '/albumart?sourceicon=music_service/personal_radio/personal_radio.svg'
@@ -112,60 +131,194 @@ ControllerPersonalRadio.prototype.addToBrowseSources = function () {
 };
 
 ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
-  var self = this;
-  var defer =libQ.defer();
-  var response;
+    var self = this;
+    var response;
 
-  self.logger.info("PersonalRadio::handleBrowseUri");
-  if (curUri.startsWith('root')) {
-      if (curUri === 'root') { //root
-          response = {
-              "navigation": {
-                  "lists": [
-                      {
-                          "availableListViews": [
-                              'list'
-                          ],
-                          "items": [
-                          ]
-                      }
-                  ],
-                  "prev": {
-                      "uri": '/'
-                  }
-              }
-          };
+    self.logger.info("PersonalRadio::handleBrowseUri");
+    if (curUri.startsWith('kradio')) {
+        if (curUri === 'kradio') {
+            response = self.getRootContent();
+        }
+        else if (curUri === 'kradio/kbs') {
+            response = self.getKbsContent();
+        }
+        else if (curUri === 'kradio/mbc') {
+            response = self.getMbcContent();
+        }
+        else if (curUri === 'kradio/linn') {
+            response = self.getLinnContent();
+        }
+        else {
+            response = libQ.reject();
+        }
+    }
 
-          for (var i in KbsChannelName) {
-            var channel = {
-              service: serviceName,
-              type: 'mywebradio',
-              title: KbsChannelName[i],
-              artist: '',
-              album: '',
-              icon: 'fa fa-music',
-              uri: 'webkbs/'+ i
-            };
-            response.navigation.lists[0].items.push(channel);
-          }
-          for (var j in LinnChannelName) {
-            var channel = {
-              service: serviceName,
-              type: 'mywebradio',
-              title: LinnChannelName[j],
-              artist: '',
-              album: '',
-              icon: 'fa fa-music',
-              uri: 'weblinn/'+ j
-            };
-            response.navigation.lists[0].items.push(channel);
-          }
+    return response
+        .fail(function (e) {
+            self.logger.info('[' + Date.now() + '] ' + 'ControllerQobuz::handleBrowseUri failed');
+            libQ.reject(new Error());
+        });
+};
 
-          defer.resolve(response);
-      }
-  }
 
-  return defer.promise;
+ControllerPersonalRadio.prototype.getRootContent = function() {
+    var self=this;
+    var response;
+    var defer = libQ.defer();
+
+    response = {
+        "navigation": {
+            "lists": [
+                {
+                    "availableListViews": [
+                        'list'
+                    ],
+                    "items": [
+                        {
+                            service: self.serviceName,
+                            type: 'folder',
+                            title: 'KBS',
+                            icon: 'fa fa-folder-open-o',
+                            uri: 'kradio/kbs'
+                        },
+                        {
+                            service: self.serviceName,
+                            type: 'folder',
+                            title: 'MBC',
+                            icon: 'fa fa-folder-open-o',
+                            uri: 'kradio/mbc'
+                        },
+                        {
+                            service: self.serviceName,
+                            type: 'folder',
+                            title: 'Linn',
+                            iicon: 'fa fa-folder-open-o',
+                            uri: 'kradio/linn'
+                        }
+                    ]
+                }
+            ],
+            "prev": {
+                "uri": '/'
+            }
+        }
+    };
+    defer.resolve(response);
+
+    return defer.promise;
+};
+
+ControllerPersonalRadio.prototype.getKbsContent = function() {
+    var self=this;
+    var response;
+    var defer = libQ.defer();
+
+    response = {
+        "navigation": {
+            "lists": [
+                {
+                    "availableListViews": [
+                        'list'
+                    ],
+                    "items": [
+                    ]
+                }
+            ],
+            "prev": {
+                "uri": 'kradio'
+            }
+        }
+    };
+    for (var i in self.KbsChannelName) {
+        var channel = {
+            service: self.serviceName,
+            type: 'mywebradio',
+            title: self.KbsChannelName[i],
+            artist: '',
+            album: '',
+            icon: 'fa fa-music',
+            uri: 'webkbs/'+ i
+        };
+        response.navigation.lists[0].items.push(channel);
+    }
+    defer.resolve(response);
+
+    return defer.promise;
+};
+
+ControllerPersonalRadio.prototype.getMbcContent = function() {
+    var self=this;
+    var response;
+    var defer = libQ.defer();
+
+    response = {
+        "navigation": {
+            "lists": [
+                {
+                    "availableListViews": [
+                        'list'
+                    ],
+                    "items": [
+                    ]
+                }
+            ],
+            "prev": {
+                "uri": 'kradio'
+            }
+        }
+    };
+    for (var k in self.mbc) {
+        var channel = {
+            service: self.serviceName,
+            type: 'mywebradio',
+            title: self.mbc[k].title,
+            artist: '',
+            album: '',
+            icon: 'fa fa-music',
+            uri: 'webmbc/'+ k
+        };
+        response.navigation.lists[0].items.push(channel);
+    }
+    defer.resolve(response);
+
+    return defer.promise;
+};
+
+ControllerPersonalRadio.prototype.getLinnContent = function() {
+    var self = this;
+    var response;
+    var defer = libQ.defer();
+
+    response = {
+        "navigation": {
+            "lists": [
+                {
+                    "availableListViews": [
+                        'list'
+                    ],
+                    "items": []
+                }
+            ],
+            "prev": {
+                "uri": 'kradio'
+            }
+        }
+    };
+    for (var j in self.linn.name) {
+        var channel = {
+            service: self.serviceName,
+            type: 'mywebradio',
+            title: self.linn.name[j],
+            artist: '',
+            album: '',
+            icon: 'fa fa-music',
+            uri: 'weblinn/'+ j
+        };
+        response.navigation.lists[0].items.push(channel);
+    }
+    defer.resolve(response);
+
+    return defer.promise;
 };
 
 ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
@@ -185,15 +338,17 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
           self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
 
       return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
-        if (track.radioType === 'kbs') {
-          return self.mpdPlugin.getState().then(function (state) {
-            return self.commandRouter.stateMachine.syncState(state, serviceName);
-          });
-        }
-        else {
-          self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
-          return libQ.resolve();
-        }
+          switch (track.radioType) {
+              case 'kbs':
+              case 'mbc':
+                  return self.mpdPlugin.getState().then(function (state) {
+                      return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+                  });
+                  break;
+              default:
+                  self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
+                  return libQ.resolve();
+          }
       })
     })
     .fail(function (e) {
@@ -246,37 +401,57 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var channel = parseInt(uris[1]);
   var response;
 
-  if (uris[0] === 'webkbs') {
-    self.getKbsStreamUrl(channel+1).then(function (kbsUri) {
-      response = {
-        uri: kbsUri,
-        service: serviceName,
-        name: KbsChannelName[channel],
-        title: KbsChannelName[channel],
-        type: 'track',
-        trackType: self.getRadioI18nString('PLUGIN_NAME'),
-        radioType: 'kbs',
-        samplerate: '',
-        bitdepth: '',
-        albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
-      };
-      defer.resolve(response);
-    })
-  }
-  else if (uris[0] === 'weblinn') {
-    response = {
-      uri: LinnChannelUri[channel],
-      service: serviceName,
-      name: LinnChannelName[channel],
-      type: 'track',
-      trackType: self.getRadioI18nString('PLUGIN_NAME'),
-      radioType: 'linn',
-      albumart: '/albumart?sourceicon=music_service/personal_radio/linn.svg'
-    };
-    defer.resolve(response);
-  }
+    switch (uris[0]) {
+        case 'webkbs':
+            self.getKbsStreamUrl(channel+1).then(function (kbsUri) {
+                response = {
+                    uri: kbsUri,
+                    service: self.serviceName,
+                    name: self.KbsChannelName[channel],
+                    title: self.KbsChannelName[channel],
+                    type: 'track',
+                    trackType: self.getRadioI18nString('PLUGIN_NAME'),
+                    radioType: 'kbs',
+                    albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
+                };
+                defer.resolve(response);
+            });
+            break;
 
-  return defer.promise;
+        case 'webmbc':
+            self.getMbcStreamUrl(channel).then(function (MbcUri) {
+                response = {
+                    uri: MbcUri,
+                    service: self.serviceName,
+                    name: self.mbc[channel].title,
+                    title: self.mbc[channel].title,
+                    type: 'track',
+                    trackType: self.getRadioI18nString('PLUGIN_NAME'),
+                    radioType: 'mbc',
+                    albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
+                };
+                defer.resolve(response);
+            });
+            break;
+
+        case 'weblinn':
+            response = {
+                uri: self.linn.uri[channel],
+                service: self.serviceName,
+                name: self.linn.name[channel],
+                type: 'track',
+                trackType: self.getRadioI18nString('PLUGIN_NAME'),
+                radioType: 'linn',
+                albumart: '/albumart?sourceicon=music_service/personal_radio/linn.svg'
+            };
+            defer.resolve(response);
+            break;
+
+        default:
+            defer.resolve();
+    }
+
+    return defer.promise;
 };
 
 // Stream and resource controls ---------------------------------------------------------
@@ -302,7 +477,7 @@ ControllerPersonalRadio.prototype.getKbsStreamUrl = function (channel) {
           defer.resolve(streamUrl);
         }
         else {
-            self.commandRouter.pushToastMessage('info',
+            self.commandRouter.pushToastMessage('error',
                 self.getRadioI18nString('PLUGIN_NAME'),
                 self.getRadioI18nString('ERROR_KBS_URL'));
 
@@ -312,6 +487,41 @@ ControllerPersonalRadio.prototype.getKbsStreamUrl = function (channel) {
         defer.resolve(null);
       }
     });
+    return defer.promise;
+};
+
+
+ControllerPersonalRadio.prototype.getMbcStreamUrl = function (channel) {
+    var self = this;
+    var defer = libQ.defer();
+
+    var Request = unirest.get(self.baseMbcStreamUrl);
+    Request.query({
+        channel: self.mbc[channel].channel,
+        agent: 'agent',
+        protocol: 'RTMP'
+    })
+        .end(function (response) {
+            if (response.status === 200) {
+                var result = JSON.parse(response.body.replace(/\(|\)|\;/g,''));
+                var streamUrl = result.AACLiveURL;
+                if (streamUrl !== undefined) {
+                    defer.resolve(streamUrl);
+                }
+                else {
+                    self.commandRouter.pushToastMessage('error',
+                        self.getRadioI18nString('PLUGIN_NAME'),
+                        self.getRadioI18nString('ERROR_MBC_URL'));
+
+                    defer.resolve(null);
+                }
+            } else {
+                self.commandRouter.pushToastMessage('error',
+                    self.getRadioI18nString('PLUGIN_NAME'),
+                    self.getRadioI18nString('ERROR_MBC_URL'));
+                defer.resolve(null);
+            }
+        });
     return defer.promise;
 };
 

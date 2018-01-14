@@ -7,5 +7,8 @@
   "KBS2_RADIO": "KBS2 라디오",
   "KBS3_RADIO": "KBS3 라디오",
   "KBS_UNION": "KBS 한민족방송",
-  "KBS_WORLD": "KBS 월드"
+  "KBS_WORLD": "KBS 월드",
+  "MBC_STANDARD": "MBC 표준 FM",
+  "MBC_FM4U": "MBC FM4U",
+  "MBC_CHANNEL_M": "MBC 인터넷 라디오"
 }

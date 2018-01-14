@@ -7,5 +7,8 @@
   "KBS2_RADIO": "KBS2 Radio",
   "KBS3_RADIO": "KBS3 Radio",
   "KBS_UNION": "KBS Union",
-  "KBS_WORLD": "KBS World"
+  "KBS_WORLD": "KBS World",
+  "MBC_STANDARD": "MBC Standard FM",
+  "MBC_FM4U": "MBC FM4U",
+  "MBC_CHANNEL_M": "MBC Channel M"
 }
