@@ -333,18 +333,18 @@ ControllerPersonalRadio.prototype.stop = function() {
       self.getRadioI18nString('STOP_RADIO_CHANNEL')
   );
   return self.mpdPlugin.stop().then(function () {
-    return self.mpdPlugin.getState().then(function (state) {
-        return self.commandRouter.stateMachine.syncState(state, serviceName);
-    });
+      return self.mpdPlugin.getState().then(function (state) {
+          return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      });
   });
 };
 
 ControllerPersonalRadio.prototype.pause = function() {
-	var self = this;
+  var self = this;
 
   return self.mpdPlugin.pause().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
-        return self.commandRouter.stateMachine.syncState(state, serviceName);
+        return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
 };
@@ -352,10 +352,9 @@ ControllerPersonalRadio.prototype.pause = function() {
 ControllerPersonalRadio.prototype.resume = function() {
   var self = this;
 
-  // TODO don't send 'toggle' if already playing
   return self.mpdPlugin.resume().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
-        return self.commandRouter.stateMachine.syncState(state, serviceName);
+        return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
 };
