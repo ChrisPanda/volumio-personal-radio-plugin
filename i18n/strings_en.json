@@ -15,5 +15,8 @@
   "KBS_WORLD": "KBS World",
   "MBC_STANDARD": "MBC Standard FM",
   "MBC_FM4U": "MBC FM4U",
-  "MBC_CHANNEL_M": "MBC Channel M"
+  "MBC_CHANNEL_M": "MBC Channel M",
+  "SBS_POWER_FM": "SBS PowerFM",
+  "SBS_LOVE_FM": "SBS LoveFM",
+  "SBS_INTERNET_RADIO": "SBS Internet Radio"
 }

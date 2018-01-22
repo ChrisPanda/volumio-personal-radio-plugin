@@ -104,6 +104,9 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
     else if (curUri === 'kradio/kbs') {
       response = self.getKbsContent();
     }
+    else if (curUri === 'kradio/sbs') {
+        response = self.getSbsContent();
+    }
     else if (curUri === 'kradio/mbc') {
       response = self.getMbcContent();
     }
@@ -128,43 +131,18 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
   var response;
   var defer = libQ.defer();
 
-  response = {
-    "navigation": {
-      "lists": [
-        {
-          "availableListViews": [
-            'list'
-          ],
-          "items": [
-            {
-                service: self.serviceName,
-                type: 'folder',
-                title: 'KBS',
-                icon: 'fa fa-folder-open-o',
-                uri: 'kradio/kbs'
-            },
-            {
-                service: self.serviceName,
-                type: 'folder',
-                title: 'MBC',
-                icon: 'fa fa-folder-open-o',
-                uri: 'kradio/mbc'
-            },
-            {
-                service: self.serviceName,
-                type: 'folder',
-                title: 'Linn',
-                icon: 'fa fa-folder-open-o',
-                uri: 'kradio/linn'
-            }
-          ]
-        }
-      ],
-      "prev": {
-        "uri": '/'
-      }
-    }
-  };
+  response = JSON.parse(JSON.stringify(self.baseNavigation));
+  response.navigation.prev.uri = '/';
+  for (var i in self.rootRadios) {
+      var radio = {
+          service: self.serviceName,
+          type: 'folder',
+          title: self.rootRadios[i].title,
+          icon: 'fa fa-folder-open-o',
+          uri: self.rootRadios[i].uri
+      };
+      response.navigation.lists[0].items.push(channel);
+  }
   defer.resolve(response);
 
   return defer.promise;
@@ -175,22 +153,7 @@ ControllerPersonalRadio.prototype.getKbsContent = function() {
   var response;
   var defer = libQ.defer();
 
-  response = {
-    "navigation": {
-      "lists": [
-        {
-          "availableListViews": [
-            'list'
-          ],
-          "items": [
-          ]
-        }
-      ],
-      "prev": {
-        "uri": 'kradio'
-      }
-    }
-  };
+  response = JSON.parse(JSON.stringify(self.baseNavigation));
   for (var i in self.KbsChannelName) {
     var channel = {
       service: self.serviceName,
@@ -208,27 +171,35 @@ ControllerPersonalRadio.prototype.getKbsContent = function() {
   return defer.promise;
 };
 
+ControllerPersonalRadio.prototype.getSbsContent = function() {
+  var self=this;
+  var response;
+  var defer = libQ.defer();
+
+  response = JSON.parse(JSON.stringify(self.baseNavigation));
+  for (var i in self.sbs) {
+      var channel = {
+          service: self.serviceName,
+          type: 'mywebradio',
+          title: self.sbs[i].title,
+          artist: '',
+          album: '',
+          icon: 'fa fa-music',
+          uri: 'websbs/'+ i
+      };
+      response.navigation.lists[0].items.push(channel);
+  }
+  defer.resolve(response);
+
+  return defer.promise;
+};
+
 ControllerPersonalRadio.prototype.getMbcContent = function() {
   var self=this;
   var response;
   var defer = libQ.defer();
 
-  response = {
-    "navigation": {
-      "lists": [
-        {
-          "availableListViews": [
-            'list'
-          ],
-          "items": [
-          ]
-        }
-      ],
-      "prev": {
-        "uri": 'kradio'
-      }
-    }
-  };
+  response = JSON.parse(JSON.stringify(self.baseNavigation));
   for (var k in self.mbc) {
     var channel = {
       service: self.serviceName,
@@ -251,21 +222,7 @@ ControllerPersonalRadio.prototype.getLinnContent = function() {
   var response;
   var defer = libQ.defer();
 
-  response = {
-    "navigation": {
-      "lists": [
-        {
-          "availableListViews": [
-            'list'
-          ],
-          "items": []
-        }
-      ],
-      "prev": {
-          "uri": 'kradio'
-      }
-    }
-  };
+  response = JSON.parse(JSON.stringify(self.baseNavigation));
   for (var j in self.linn.name) {
     var channel = {
       service: self.serviceName,
@@ -302,6 +259,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
       return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
         switch (track.radioType) {
           case 'kbs':
+          case 'sbs':
           case 'mbc':
             return self.mpdPlugin.getState().then(function (state) {
                 return self.commandRouter.stateMachine.syncState(state, self.serviceName);
@@ -377,6 +335,22 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             type: 'track',
             trackType: self.getRadioI18nString('PLUGIN_NAME'),
             radioType: 'kbs',
+            albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
+          };
+          defer.resolve(response);
+        });
+        break;
+
+      case 'websbs':
+        self.getSbsStreamUrl(channel).then(function (sbsUri) {
+          response = {
+            uri: sbsUri,
+            service: self.serviceName,
+            name: self.sbs[channel].title,
+            title: self.sbs[channel].title,
+            type: 'track',
+            trackType: self.getRadioI18nString('PLUGIN_NAME'),
+            radioType: 'sbs',
             albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
           };
           defer.resolve(response);
@@ -484,6 +458,13 @@ ControllerPersonalRadio.prototype.getKbsStreamUrl = function (channel) {
   return defer.promise;
 };
 
+ControllerPersonalRadio.prototype.getSbsStreamUrl = function (channel) {
+  var self = this;
+  var defer = libQ.defer();
+
+  return defer.promise;
+};
+
 ControllerPersonalRadio.prototype.getMbcStreamUrl = function (channel) {
   var self = this;
   var defer = libQ.defer();
@@ -520,6 +501,42 @@ ControllerPersonalRadio.prototype.getMbcStreamUrl = function (channel) {
 
 ControllerPersonalRadio.prototype.addRadioResource = function() {
   var self=this;
+
+  self.rootRadios = [
+      {
+          title: 'KBS',
+          uri: 'kradio/kbs'
+      },
+      {
+          title: 'SBS',
+          uri: 'kradio/sbs'
+      },
+      {
+          title: 'MBC',
+          uri: 'kradio/mbc'
+      },
+      {
+          title: 'Linn',
+          uri: 'kradio/linn'
+      }
+  ];
+
+  self.baseNavigation = {
+    "navigation": {
+      "lists": [
+        {
+          "availableListViews": [
+            'list'
+          ],
+          "items": [
+          ]
+        }
+      ],
+      "prev": {
+        "uri": 'kradio'
+      }
+    }
+  };
 
   // Linn Radio Resource Preparing
   self.linn = {
@@ -560,6 +577,19 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
     {
       title: self.getRadioI18nString('MBC_CHANNEL_M'),
       channel: 'chm'
+    }
+  ];
+
+  // SBS Radio Resource Preparing
+  self.sbs = [
+    {
+      title: self.getRadioI18nString('SBS_POWER_FM'),
+    },
+    {
+      title: self.getRadioI18nString('SBS_LOVE_FM'),
+    },
+    {
+      title: self.getRadioI18nString('SBS_INTERNET_RADIO'),
     }
   ];
 
