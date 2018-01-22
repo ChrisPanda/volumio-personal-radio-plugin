@@ -43,8 +43,8 @@ ControllerPersonalRadio.prototype.onStart = function() {
   self.mpdPlugin = this.commandRouter.pluginManager.getPlugin('music_service','mpd');
 
   self.loadRadioI18nStrings();
-  self.addToBrowseSources();
   self.addRadioResource();
+  self.addToBrowseSources();
 
   self.serviceName = "personal_radio";
 
@@ -141,7 +141,7 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
           icon: 'fa fa-folder-open-o',
           uri: self.rootRadios[i].uri
       };
-      response.navigation.lists[0].items.push(channel);
+      response.navigation.lists[0].items.push(radio);
   }
   defer.resolve(response);
 
