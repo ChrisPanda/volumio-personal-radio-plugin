@@ -30,7 +30,6 @@ ControllerPersonalRadio.prototype.onVolumioStart = function()
   self.configFile=this.commandRouter.pluginManager.getConfigurationFile(this.context,'config.json');
   self.getConf(self.configFile);
 
-  self.logger.info("PersonalRadio:CONFIG:"+JSON.stringify(self.config.get("radioStations")));
 
   return libQ.resolve();
 };
@@ -45,10 +44,13 @@ ControllerPersonalRadio.prototype.onStart = function() {
   self.mpdPlugin = this.commandRouter.pluginManager.getPlugin('music_service','mpd');
 
   self.loadRadioI18nStrings();
+  self.loadRadioStations();
   self.addRadioResource();
   self.addToBrowseSources();
 
   self.serviceName = "personal_radio";
+
+  self.logger.info("PersonalRadio:CONFIG:"+JSON.stringify(self.radioStationsFile));
 
   return libQ.resolve();
 };
@@ -696,6 +698,14 @@ ControllerPersonalRadio.prototype.loadRadioI18nStrings = function () {
 
   self.i18nStrings=fs.readJsonSync(__dirname+'/i18n/strings_'+language_code+".json");
   self.i18nStringsDefaults=fs.readJsonSync(__dirname+'/i18n/strings_en.json');
+};
+
+
+ControllerPersonalRadio.prototype.loadRadioStations = function () {
+  var self = this;
+
+  var stations =  fs.readJsonSync(__dirname+'/radio_stations.json');
+  self.radioStationsFile = JSON.parse(stations);
 };
 
 ControllerPersonalRadio.prototype.getRadioI18nString = function (key) {

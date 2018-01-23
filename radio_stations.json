@@ -1,0 +1,86 @@
+{
+  "radioStations": {
+    "linn": [
+      {
+        "title": "LinnJazz",
+        "uri": "weblinn/0",
+        "url": "http://radio.linnrecords.com:8000/stream"
+      },
+      {
+        "title": "LinnRadio",
+        "uri": "weblinn/1",
+        "url": "http://radio.linnrecords.com:8003/stream"
+      },
+      {
+        "title": "LinnClassic",
+        "uri": "weblinn/2",
+        "url": "http://radio.linnrecords.com:8004/stream"
+      }
+    ],
+    "kbs": [
+      {
+        "title": "KBS1 FM",
+        "uri": "webkbs/0"
+      },
+      {
+        "title": "KBS2 FM",
+        "uri": "webkbs/1"
+      },
+      {
+        "title": "KBS1_RADIO",
+        "uri": "webkbs/2"
+      },
+      {
+        "title": "KBS2_RADIO",
+        "uri": "webkbs/3"
+      },
+      {
+        "title": "KBS3_RADIO",
+        "uri": "webkbs/4"
+      },
+      {
+        "title": "KBS DMB",
+        "uri": "webkbs/5"
+      },
+      {
+        "title": "KBS_UNION",
+        "uri": "webkbs/6"
+      },
+      {
+        "title": "KBS_WORLD",
+        "uri": "webkbs/7"
+      }
+    ],
+    "mbc": [
+      {
+        "title": "MBC_STANDARD",
+        "uri": "webmbc/0",
+        "channel": "sfm"
+      },
+      {
+        "title": "MBC_FM4U",
+        "uri": "webmbc/1",
+        "channel": "mfm"
+      },
+      {
+        "title": "MBC_CHANNEL_M",
+        "uri": "webmbc/2",
+        "channel": "chm"
+      }
+    ],
+    "sbs": [
+      {
+        "title": "SBS_POWER_FM",
+        "uri": "websbsc/0"
+      },
+      {
+        "title": "SBS_LOVE_FM",
+        "uri": "websbsc/1"
+      },
+      {
+        "title": "SBS_INTERNET_RADIO",
+        "uri": "websbsc/2"
+      }
+    ]
+  }
+}
