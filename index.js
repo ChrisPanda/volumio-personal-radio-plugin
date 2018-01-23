@@ -50,8 +50,6 @@ ControllerPersonalRadio.prototype.onStart = function() {
 
   self.serviceName = "personal_radio";
 
-  self.logger.info("PersonalRadio:CONFIG:"+JSON.stringify(self.radioStationsFile));
-
   return libQ.resolve();
 };
 
@@ -587,6 +585,7 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
     }
   };
 
+  /*
   // Linn Radio Resource Preparing
   self.radioStations =
     {
@@ -673,6 +672,7 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
         }
       ]
     };
+  */
 
   // KBS, MBC Radio Streaming server Preparing
   var KbsCipherText = 'cac4d4e664757c065285538ec8eed223e745230cf4c9fa5942b5db7a2d4b09fbddaf6892570dbc20b48a8a2091950f289a';
@@ -704,8 +704,7 @@ ControllerPersonalRadio.prototype.loadRadioI18nStrings = function () {
 ControllerPersonalRadio.prototype.loadRadioStations = function () {
   var self = this;
 
-  var stations =  fs.readJsonSync(__dirname+'/radio_stations.json');
-  self.radioStationsFile = JSON.parse(stations);
+  self.radioStations = fs.readJsonSync(__dirname+'/radio_stations.json');
 };
 
 ControllerPersonalRadio.prototype.getRadioI18nString = function (key) {
