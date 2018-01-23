@@ -373,7 +373,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
   switch (uris[0]) {
     case 'webkbs':
-      self.getKbsStreamUrl(channel).then(function (kbsUri) {
+      self.getKbsStreamUrl(channel+1).then(function (kbsUri) {
         response = {
           uri: kbsUri,
           service: self.serviceName,
@@ -422,7 +422,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
     case 'weblinn':
       response = {
-        uri: self.linn[channel].uri,
+        uri: self.radioStations.linn[channel].url,
         service: self.serviceName,
         name: self.radioStations.linn[channel].title,
         type: 'track',
@@ -518,7 +518,7 @@ ControllerPersonalRadio.prototype.getMbcStreamUrl = function (channel) {
 
   var Request = unirest.get(self.baseMbcStreamUrl);
   Request.query({
-      channel: self.mbc[channel].channel,
+      channel: self.radioStations.mbc[channel].channel,
       agent: 'agent',
       protocol: 'RTMP'
   })
@@ -591,15 +591,18 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
       linn: [
         {
           title: self.config.get("linnJazzName"),
-          uri: self.config.get("linnJazzUrl")
+          uri: 'weblinn/0',
+          url: self.config.get("linnJazzUrl")
         },
         {
           title: self.config.get("linnRadioName"),
-          uri: self.config.get("linnRadioUrl")
+          uri: 'weblinn/1',
+          url: self.config.get("linnRadioUrl")
         },
         {
           title: self.config.get("linnClassicName"),
-          uri: self.config.get("linnClassicUrl")
+          uri: 'weblinn/2',
+          url: self.config.get("linnClassicUrl")
         }
       ],
       kbs: [
