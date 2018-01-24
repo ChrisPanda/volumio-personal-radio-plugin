@@ -1,6 +1,6 @@
 'use strict';
 
-// This Volumio plugin provides Korean Radios (KBS, MBC) and Linn radio.
+// This Volumio plugin provides Korean radios (SBS, KBS, MBC) and Linn radio.
 
 var libQ = require('kew');
 var fs = require('fs-extra');
@@ -97,7 +97,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
   var self = this;
   var response;
 
-  self.logger.info("ControllerPersonalRadio::handleBrowseUri");
+  //self.logger.info("ControllerPersonalRadio::handleBrowseUri");
   if (curUri.startsWith('kradio')) {
     if (curUri === 'kradio') {
       response = self.getRootContent();
@@ -125,7 +125,6 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
       libQ.reject(new Error());
     });
 };
-
 
 ControllerPersonalRadio.prototype.getRootContent = function() {
   var self=this;
@@ -274,7 +273,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var station;
 
   station = uris[0].substring(3);
-  var baseResponse = {
+  response = {
       service: self.serviceName,
       type: 'track',
       trackType: self.getRadioI18nString('PLUGIN_NAME'),
@@ -302,23 +301,12 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
               streamUrl = null;
               self.errorToast(station, 'INCORRECT_RESPONSE');
             }
-          /*
-            response = {
-              uri: streamUrl,
-              service: self.serviceName,
-              name: self.radioStations.kbs[channel].title,
-              title: self.radioStations.kbs[channel].title,
-              type: 'track',
-              trackType: self.getRadioI18nString('PLUGIN_NAME'),
-              radioType: station,
-              albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
-            };
-          */
-            baseResponse["uri"] = streamUrl;
-            baseResponse["name"] = self.radioStations.kbs[channel].title;
-            baseResponse["title"] = self.radioStations.kbs[channel].title;
+
+            response["uri"] = streamUrl;
+            response["name"] = self.radioStations.kbs[channel].title;
+            response["title"] = self.radioStations.kbs[channel].title;
           }
-          defer.resolve(baseResponse);
+          defer.resolve(response);
         });
       break;
 
@@ -331,23 +319,12 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
         .then(function (responseUrl) {
           if (responseUrl  !== null) {
 
-            /*
-            response = {
-              uri: streamUrl,
-              service: self.serviceName,
-              name: self.radioStations.sbs[channel].title,
-              title: self.radioStations.sbs[channel].title,
-              type: 'track',
-              trackType: self.getRadioI18nString('PLUGIN_NAME'),
-              radioType: station,
-              albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
-            };
-            */
-            baseResponse["uri"] = streamUrl;
-            baseResponse["name"] = self.radioStations.sbs[channel].title;
-            baseResponse["title"] = self.radioStations.sbs[channel].title;
+
+            response["uri"] = streamUrl;
+            response["name"] = self.radioStations.sbs[channel].title;
+            response["title"] = self.radioStations.sbs[channel].title;
           }
-          defer.resolve(baseResponse);
+          defer.resolve(response);
         });
       break;
 
@@ -366,41 +343,19 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
               streamUrl = null;
               self.errorToast(station, 'INCORRECT_RESPONSE');
             }
-            /*
-            response = {
-              uri: streamUrl,
-              service: self.serviceName,
-              name: self.radioStations.mbc[channel].title,
-              title: self.radioStations.mbc[channel].title,
-              type: 'track',
-              trackType: self.getRadioI18nString('PLUGIN_NAME'),
-              radioType: station,
-              albumart: '/albumart?sourceicon=music_service/personal_radio/mbc.svg'
-            };
-            */
-            baseResponse["uri"] = streamUrl;
-            baseResponse["name"] = self.radioStations.mbc[channel].title;
-            baseResponse["title"] = self.radioStations.mbc[channel].title;
+
+            response["uri"] = streamUrl;
+            response["name"] = self.radioStations.mbc[channel].title;
+            response["title"] = self.radioStations.mbc[channel].title;
           }
-          defer.resolve(baseResponse);
+          defer.resolve(response);
         });
       break;
 
     case 'weblinn':
-      /*
-      response = {
-        uri: self.radioStations.linn[channel].url,
-        service: self.serviceName,
-        name: self.radioStations.linn[channel].title,
-        type: 'track',
-        trackType: self.getRadioI18nString('PLUGIN_NAME'),
-        radioType: station,
-        albumart: '/albumart?sourceicon=music_service/personal_radio/linn.svg'
-      };
-      */
-      baseResponse["uri"] = self.radioStations.linn[channel].url;
-      baseResponse["name"] = self.radioStations.linn[channel].title;
-      defer.resolve(baseResponse);
+      response["uri"] = self.radioStations.linn[channel].url;
+      response["name"] = self.radioStations.linn[channel].title;
+      defer.resolve(response);
       break;
 
     default:
@@ -482,22 +437,14 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.radioStations.sbs[1].title =  self.getRadioI18nString('SBS_LOVE_FM');
   self.radioStations.sbs[2].title =  self.getRadioI18nString('SBS_INTERNET_RADIO');
 
-  // KBS, MBC, SBS Radio Streaming server Preparing
-  self.getSecretKey(radioResource.radioKeyUri).then(function(response) {
+  // Korean radio streaming server preparing
+  self.getSecretKey(radioResource.encodedRadio.radioKey).then(function(response) {
     var secretKey = response.secretKey;
     var algorithm = response.algorithm;
 
-    var decipherKBS = crypto.createDecipher(algorithm, secretKey);
-    self.baseKbsStreamUrl = decipherKBS.update(radioResource.encUri.kbs, 'hex', 'utf8');
-    self.baseKbsStreamUrl += decipherKBS.final('utf8');
-
-    var decipherMBC = crypto.createDecipher(algorithm, secretKey);
-    self.baseMbcStreamUrl = decipherMBC.update(radioResource.encUri.mbc, 'hex', 'utf8');
-    self.baseMbcStreamUrl += decipherMBC.final('utf8');
-
-    var decipherMBC = crypto.createDecipher(algorithm, secretKey);
-    self.baseSbsStreamUrl = decipherMBC.update(radioResource.encUri.sbs, 'hex', 'utf8');
-    self.baseSbsStreamUrl += decipherMBC.final('utf8');
+    self.baseKbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbs);
+    self.baseMbcStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.mbc);
+    self.baseSbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.sbs);
   });
 };
 
@@ -506,6 +453,7 @@ ControllerPersonalRadio.prototype.loadRadioI18nStrings = function () {
 
   try {
     var language_code = this.commandRouter.sharedVars.get('language_code');
+    self.logger.info("PersonalRadio:lang:"+language_code);
     self.i18nStrings=fs.readJsonSync(__dirname+'/i18n/strings_'+language_code+".json");
   } catch(e) {
     self.i18nStrings=fs.readJsonSync(__dirname+'/i18n/strings_en.json');
@@ -523,9 +471,21 @@ ControllerPersonalRadio.prototype.getRadioI18nString = function (key) {
     return self.i18nStringsDefaults[key];
 };
 
+ControllerPersonalRadio.prototype.decodeStreamUrl =
+    function (algorithm, secretKey, encodedUri) {
+
+  var decipherKBS = crypto.createDecipher(algorithm, secretKey);
+  var streamUrl = decipherKBS.update(encodedUri, 'hex', 'utf8');
+  streamUrl += decipherKBS.final('utf8');
+
+  return streamUrl;
+};
+
 ControllerPersonalRadio.prototype.errorToast = function (station, msg) {
   var errorMessage = self.getRadioI18nString(msg);
   errorMessage.replace('{0}', station.toUpperCase());
   self.commandRouter.pushToastMessage('error',
       self.getRadioI18nString('PLUGIN_NAME'), errorMessage);
 };
+
+
