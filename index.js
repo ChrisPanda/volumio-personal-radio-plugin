@@ -424,6 +424,8 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.baseNavigation = radioResource.baseNavigation;
   self.radioStations = radioResource.stations;
 
+  self.skey = (new Buffer(adioResource.encodedRadio.skey, 'base64')).toString('ascii');
+
   // i18n resource localization
   self.radioStations.kbs[2].title =  self.getRadioI18nString('KBS1_RADIO');
   self.radioStations.kbs[3].title =  self.getRadioI18nString('KBS2_RADIO');
