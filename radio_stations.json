@@ -107,15 +107,18 @@
     "sbs": [
       {
         "title": "SBS Power FM",
-        "uri": "websbsc/0"
+        "uri": "websbsc/0",
+        "channel": "RA01"
       },
       {
         "title": "SBS Love FM",
-        "uri": "websbsc/1"
+        "uri": "websbsc/1",
+        "channel": "RA02"
       },
       {
         "title": "SBS Internet Radio",
-        "uri": "websbsc/2"
+        "uri": "websbsc/2",
+        "channel": "RA03"
       }
     ]
   }

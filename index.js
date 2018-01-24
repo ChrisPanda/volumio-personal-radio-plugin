@@ -279,47 +279,66 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       trackType: self.getRadioI18nString('PLUGIN_NAME')
   };
 
+  station = uris[0].substring(3);
   switch (uris[0]) {
     case 'webkbs':
-      self.getKbsStreamUrl(channel+1).then(function (kbsUri) {
-        response = {
-          uri: kbsUri,
-          service: self.serviceName,
-          name: self.radioStations.kbs[channel].title,
-          title: self.radioStations.kbs[channel].title,
-          type: 'track',
-          trackType: self.getRadioI18nString('PLUGIN_NAME'),
-          radioType: 'kbs',
-          albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
-        };
-        defer.resolve(response);
-      });
+      var userId = Math.random().toString(36).substring(2, 6) +
+                   Math.random().toString(36).substring(2, 6);
+      query = {
+        id: userId,
+        channel: channel+1
+      };
+      self.getStreamUrl(station, self.baseKbsStreamUrl, query)
+        .then(function (KbsUri) {
+          if (KbsUri  !== null) {
+            var result = KbsUri.split("\n");
+            var retCode = parseInt(result[0]);
+            var streamUrl = result[1];
+
+            response = {
+              uri: streamUrl,
+              service: self.serviceName,
+              name: self.radioStations.kbs[channel].title,
+              title: self.radioStations.kbs[channel].title,
+              type: 'track',
+              trackType: self.getRadioI18nString('PLUGIN_NAME'),
+              radioType: station,
+              albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
+            };
+
+          }
+          defer.resolve(response);
+        });
       break;
 
     case 'websbs':
-      self.getSbsStreamUrl(channel).then(function (sbsUri) {
-        response = {
-          uri: sbsUri,
-          service: self.serviceName,
-          name: self.radioStations.sbs[channel].title,
-          title: self.radioStations.sbs[channel].title,
-          type: 'track',
-          trackType: self.getRadioI18nString('PLUGIN_NAME'),
-          radioType: 'sbs',
-          albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
-        };
-        defer.resolve(response);
-      });
+      query = {
+        device: 'pc'
+      };
+      self.baseSbsStreamUrl += self.radioStations.sbs[channel].channel;
+      self.getStreamUrl(station, self.baseSbsStreamUrl, query)
+        .then(function (SbsUri) {
+
+          response = {
+            uri: streamUrl,
+            service: self.serviceName,
+            name: self.radioStations.sbs[channel].title,
+            title: self.radioStations.sbs[channel].title,
+            type: 'track',
+            trackType: self.getRadioI18nString('PLUGIN_NAME'),
+            radioType: station,
+            albumart: '/albumart?sourceicon=music_service/personal_radio/kbs.svg'
+          };
+          defer.resolve(response);
+        });
       break;
 
     case 'webmbc':
-      //self.getMbcStreamUrl(channel).then(function (MbcUri) {
       query = {
         channel: self.radioStations.mbc[channel].channel,
         agent: 'agent',
         protocol: 'RTMP'
       };
-      station = 'mbc';
       self.getStreamUrl(station, self.baseMbcStreamUrl, query)
         .then(function (MbcUri) {
           if (MbcUri  !== null) {
@@ -347,7 +366,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
         name: self.radioStations.linn[channel].title,
         type: 'track',
         trackType: self.getRadioI18nString('PLUGIN_NAME'),
-        radioType: 'linn',
+        radioType: station,
         albumart: '/albumart?sourceicon=music_service/personal_radio/linn.svg'
       };
       defer.resolve(response);
@@ -514,6 +533,7 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   // KBS, MBC Radio Streaming server Preparing
   var KbsCipherText = 'cac4d4e664757c065285538ec8eed223e745230cf4c9fa5942b5db7a2d4b09fbddaf6892570dbc20b48a8a2091950f289a';
   var MbcCipherText = 'cac4d4e664757c0054855dd0cfedd823ed476f04a885f95d1b87e1680d4306fbfad247d45710ba3d';
+  var SbsCipherText = 'cac4d4e664757c0c4d82478ed0eed223e745230cf4c9e65c55a9a96b31435faf81b0249d5911b724b4b5823d8cc91a2187f3';
 
   self.getSecretKey().then(function(response) {
     var secretKey = response.secretKey;
@@ -526,6 +546,10 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
     var decipherMBC = crypto.createDecipher(algorithm, secretKey);
     self.baseMbcStreamUrl = decipherMBC.update(MbcCipherText, 'hex', 'utf8');
     self.baseMbcStreamUrl += decipherMBC.final('utf8');
+
+    var decipherMBC = crypto.createDecipher(algorithm, secretKey);
+    self.baseSbsStreamUrl = decipherMBC.update(SbsCipherText, 'hex', 'utf8');
+    self.baseSbsStreamUrl += decipherMBC.final('utf8');
   });
 };
 
