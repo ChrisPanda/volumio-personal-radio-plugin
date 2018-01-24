@@ -270,6 +270,8 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var uris = uri.split("/");
   var channel = parseInt(uris[1]);
   var response;
+  var query;
+  var station;
 
   var baseResponse = {
       service: self.serviceName,
@@ -311,19 +313,31 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'webmbc':
-      self.getMbcStreamUrl(channel).then(function (MbcUri) {
-        response = {
-          uri: MbcUri,
-          service: self.serviceName,
-          name: self.radioStations.mbc[channel].title,
-          title: self.radioStations.mbc[channel].title,
-          type: 'track',
-          trackType: self.getRadioI18nString('PLUGIN_NAME'),
-          radioType: 'mbc',
-          albumart: '/albumart?sourceicon=music_service/personal_radio/mbc.svg'
-        };
-        defer.resolve(response);
-      });
+      //self.getMbcStreamUrl(channel).then(function (MbcUri) {
+      query = {
+        channel: self.radioStations.mbc[channel].channel,
+        agent: 'agent',
+        protocol: 'RTMP'
+      };
+      station = 'mbc';
+      self.getStreamUrl(station, self.baseMbcStreamUrl, query)
+        .then(function (MbcUri) {
+          if (MbcUri  !== null) {
+            var result = JSON.parse(MbcUri.replace(/\(|\)|\;/g, ''));
+            var streamUrl = result.AACLiveURL;
+            response = {
+              uri: streamUrl,
+              service: self.serviceName,
+              name: self.radioStations.mbc[channel].title,
+              title: self.radioStations.mbc[channel].title,
+              type: 'track',
+              trackType: self.getRadioI18nString('PLUGIN_NAME'),
+              radioType: station,
+              albumart: '/albumart?sourceicon=music_service/personal_radio/mbc.svg'
+            };
+          }
+          defer.resolve(response);
+        });
       break;
 
     case 'weblinn':
@@ -373,6 +387,29 @@ ControllerPersonalRadio.prototype.getSecretKey = function () {
       defer.resolve(null);
     }
   });
+
+  return defer.promise;
+};
+
+ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) {
+  var self = this;
+  var defer = libQ.defer();
+
+  var Request = unirest.get(url);
+  Request
+    .query(query)
+    .end(function (response) {
+      if (response.status === 200)
+        defer.resolve(response.body);
+      else {
+        defer.resolve(null);
+        var errorMessage = self.getRadioI18nString('ERROR_STREAM_URL');
+        errorMessage.replace('{0}', station);
+
+        self.commandRouter.pushToastMessage('error',
+            self.getRadioI18nString('PLUGIN_NAME'), errorMessage);
+      }
+    });
 
   return defer.promise;
 };

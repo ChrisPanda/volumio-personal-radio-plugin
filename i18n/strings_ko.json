@@ -2,6 +2,7 @@
   "PLUGIN_NAME": "개인 라디오",
   "WAIT_FOR_RADIO_CHANNEL":"라디오 채널 스트림 준비중. 잠시 기다려 주세요....",
   "STOP_RADIO_CHANNEL": "라디오 채널 스트림 중지합니다.",
+  "ERROR_STREAM_URL":  "{0} 라디오 방송국 스트리밍 접속 실패",
   "ERROR_KBS_URL": "KBS URL 주소에 문제가 있습니다.",
   "ERROR_MBC_URL": "MBC URL 주소에 문제가 있습니다.",
   "ERROR_KBS_SERVER": "KBS 라디오 서버에 문제가 있습니다.",
