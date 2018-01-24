@@ -315,9 +315,10 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       query = {
         device: 'pc'
       };
-      self.baseSbsStreamUrl += self.radioStations.sbs[channel].channel;
-      self.getStreamUrl(station, self.baseSbsStreamUrl, query)
+      var baseSbsStreamUrl = self.baseSbsStreamUrl + self.radioStations.sbs[channel].channel;
+      self.getStreamUrl(station, baseSbsStreamUrl, query)
         .then(function (SbsUri) {
+
 
           response = {
             uri: streamUrl,
@@ -531,9 +532,9 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.radioStations.sbs[2].title =  self.getRadioI18nString('SBS_INTERNET_RADIO');
 
   // KBS, MBC Radio Streaming server Preparing
-  var KbsCipherText = 'cac4d4e664757c065285538ec8eed223e745230cf4c9fa5942b5db7a2d4b09fbddaf6892570dbc20b48a8a2091950f289a';
-  var MbcCipherText = 'cac4d4e664757c0054855dd0cfedd823ed476f04a885f95d1b87e1680d4306fbfad247d45710ba3d';
-  var SbsCipherText = 'cac4d4e664757c0c4d82478ed0eed223e745230cf4c9e65c55a9a96b31435faf81b0249d5911b724b4b5823d8cc91a2187f3';
+  var KbsCipherText = radioResource.encUri.kbs;
+  var MbcCipherText = radioResource.encUri.mbc;
+  var SbsCipherText = radioResource.encUri.sbs;
 
   self.getSecretKey().then(function(response) {
     var secretKey = response.secretKey;
