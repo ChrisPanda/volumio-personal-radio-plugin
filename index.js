@@ -44,7 +44,6 @@ ControllerPersonalRadio.prototype.onStart = function() {
   self.mpdPlugin = this.commandRouter.pluginManager.getPlugin('music_service','mpd');
 
   self.loadRadioI18nStrings();
-  self.loadRadioStations();
   self.addRadioResource();
   self.addToBrowseSources();
 
@@ -456,130 +455,24 @@ ControllerPersonalRadio.prototype.getMbcStreamUrl = function (channel) {
 ControllerPersonalRadio.prototype.addRadioResource = function() {
   var self=this;
 
-  self.rootRadios = [
-      {
-          title: 'KBS',
-          uri: 'kradio/kbs'
-      },
-      {
-          title: 'SBS',
-          uri: 'kradio/sbs'
-      },
-      {
-          title: 'MBC',
-          uri: 'kradio/mbc'
-      },
-      {
-          title: 'Linn',
-          uri: 'kradio/linn'
-      }
-  ];
+  var radioResource = fs.readJsonSync(__dirname+'/radio_stations.json');
 
-  self.baseNavigation = {
-    "navigation": {
-      "lists": [
-        {
-          "availableListViews": [
-            'list'
-          ],
-          "items": [
-          ]
-        }
-      ],
-      "prev": {
-        "uri": 'kradio'
-      }
-    }
-  };
+  self.rootRadios = radioResource.rootStations;
+  self.baseNavigation = radioResource.baseNavigation;
+  self.radioStations = radioResource.stations;
 
-  /*
-  // Linn Radio Resource Preparing
-  self.radioStations =
-    {
-      linn: [
-        {
-          title: self.config.get("linnJazzName"),
-          uri: 'weblinn/0',
-          url: self.config.get("linnJazzUrl")
-        },
-        {
-          title: self.config.get("linnRadioName"),
-          uri: 'weblinn/1',
-          url: self.config.get("linnRadioUrl")
-        },
-        {
-          title: self.config.get("linnClassicName"),
-          uri: 'weblinn/2',
-          url: self.config.get("linnClassicUrl")
-        }
-      ],
-      kbs: [
-        {
-          title: 'KBS1 FM',
-          uri: 'webkbs/0'
-        },
-        {
-          title: 'KBS2 FM',
-          uri: 'webkbs/1'
-        },
-        {
-          title: self.getRadioI18nString('KBS1_RADIO'),
-          uri: 'webkbs/2'
-        },
-        {
-          title: self.getRadioI18nString('KBS2_RADIO'),
-          uri: 'webkbs/3'
-        },
-        {
-          title: self.getRadioI18nString('KBS3_RADIO'),
-          uri: 'webkbs/4'
-        },
-        {
-          title: 'KBS DMB',
-          uri: 'webkbs/5'
-        },
-        {
-          title: self.getRadioI18nString('KBS_UNION'),
-          uri: 'webkbs/6'
-        },
-        {
-          title: self.getRadioI18nString('KBS_WORLD'),
-          uri: 'webkbs/7'
-        }
-      ],
-      mbc: [
-        {
-          title: self.getRadioI18nString('MBC_STANDARD'),
-          uri: 'webmbc/0',
-          channel: 'sfm'
-        },
-        {
-          title: self.getRadioI18nString('MBC_FM4U'),
-          uri: 'webmbc/1',
-          channel: 'mfm'
-        },
-        {
-          title: self.getRadioI18nString('MBC_CHANNEL_M'),
-          uri: 'webmbc/2',
-          channel: 'chm'
-        }
-      ],
-      sbs: [
-        {
-          title: self.getRadioI18nString('SBS_POWER_FM'),
-          uri: 'websbsc/0'
-        },
-        {
-          title: self.getRadioI18nString('SBS_LOVE_FM'),
-          uri: 'websbsc/1'
-        },
-        {
-          title: self.getRadioI18nString('SBS_INTERNET_RADIO'),
-          uri: 'websbsc/2'
-        }
-      ]
-    };
-  */
+  // i18n resource localization
+  self.radioStations.kbs[2].title =  self.getRadioI18nString('KBS1_RADIO');
+  self.radioStations.kbs[3].title =  self.getRadioI18nString('KBS2_RADIO');
+  self.radioStations.kbs[4].title =  self.getRadioI18nString('KBS3_RADIO');
+  self.radioStations.kbs[6].title =  self.getRadioI18nString('KBS_UNION');
+  self.radioStations.kbs[7].title =  self.getRadioI18nString('KBS_WORLD');
+  self.radioStations.mbc[0].title =  self.getRadioI18nString('MBC_STANDARD');
+  self.radioStations.mbc[1].title =  self.getRadioI18nString('MBC_FM4U');
+  self.radioStations.mbc[2].title =  self.getRadioI18nString('MBC_CHANNEL_M');
+  self.radioStations.sbs[0].title =  self.getRadioI18nString('SBS_POWER_FM');
+  self.radioStations.sbs[1].title =  self.getRadioI18nString('SBS_LOVE_FM');
+  self.radioStations.sbs[2].title =  self.getRadioI18nString('SBS_INTERNET_RADIO');
 
   // KBS, MBC Radio Streaming server Preparing
   var KbsCipherText = 'cac4d4e664757c065285538ec8eed223e745230cf4c9fa5942b5db7a2d4b09fbddaf6892570dbc20b48a8a2091950f289a';
@@ -601,17 +494,15 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
 
 ControllerPersonalRadio.prototype.loadRadioI18nStrings = function () {
   var self=this;
-  var language_code = this.commandRouter.sharedVars.get('language_code');
 
-  self.i18nStrings=fs.readJsonSync(__dirname+'/i18n/strings_'+language_code+".json");
+  try {
+    var language_code = this.commandRouter.sharedVars.get('language_code');
+    self.i18nStrings=fs.readJsonSync(__dirname+'/i18n/strings_'+language_code+".json");
+  } catch(e) {
+    self.i18nStrings=fs.readJsonSync(__dirname+'/i18n/strings_en.json');
+  }
+
   self.i18nStringsDefaults=fs.readJsonSync(__dirname+'/i18n/strings_en.json');
-};
-
-
-ControllerPersonalRadio.prototype.loadRadioStations = function () {
-  var self = this;
-
-  self.radioStations = fs.readJsonSync(__dirname+'/radio_stations.json');
 };
 
 ControllerPersonalRadio.prototype.getRadioI18nString = function (key) {
