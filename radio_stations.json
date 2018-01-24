@@ -122,6 +122,7 @@
       }
     ]
   },
+  "radioKeyUri": "https://raw.githubusercontent.com/ChrisPanda/volumio-kradio-key/master/radiokey.json",
   "encUri":
     {
       "kbs": "cac4d4e664757c065285538ec8eed223e745230cf4c9fa5942b5db7a2d4b09fbddaf6892570dbc20b48a8a2091950f289a",
