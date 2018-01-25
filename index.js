@@ -367,11 +367,11 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
 // Stream and resource functions for Radio -----------------------------------
 
-ControllerPersonalRadio.prototype.getSecretKey = function (radioKeyUri) {
+ControllerPersonalRadio.prototype.getSecretKey = function (radioKeyUrl) {
   var self = this;
   var defer = libQ.defer();
 
-  var Request = unirest.get(radioKeyUri);
+  var Request = unirest.get(radioKeyUrl);
   Request.end (function (response) {
     if (response.status === 200) {
       var result = JSON.parse(response.body);
@@ -424,8 +424,6 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.baseNavigation = radioResource.baseNavigation;
   self.radioStations = radioResource.stations;
 
-  self.sbsKey = (new Buffer(radioResource.encodedRadio.sbsKey, 'base64')).toString('ascii');
-
   // i18n resource localization
   self.radioStations.kbs[2].title =  self.getRadioI18nString('KBS1_RADIO');
   self.radioStations.kbs[3].title =  self.getRadioI18nString('KBS2_RADIO');
@@ -440,9 +438,11 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.radioStations.sbs[2].title =  self.getRadioI18nString('SBS_INTERNET_RADIO');
 
   // Korean radio streaming server preparing
-  self.getSecretKey(radioResource.encodedRadio.radioKey).then(function(response) {
+  self.getSecretKey(radioResource.encodedRadio.radioKeyUrl).then(function(response) {
     var secretKey = response.secretKey;
     var algorithm = response.algorithm;
+    self.sbsKey = (new Buffer(response.stationKey, 'base64')).toString('ascii');
+    self.sbsAlgorithm = response.algorithm2;
 
     self.baseKbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbs);
     self.baseMbcStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.mbc);
