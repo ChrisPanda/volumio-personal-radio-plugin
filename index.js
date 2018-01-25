@@ -8,7 +8,11 @@ var config = require('v-conf');
 var unirest = require('unirest');
 var crypto = require('crypto');
 
-module.exports = ControllerPersonalRadio;
+module.exports = ControllerPersonalRadio(app) {
+  app.get('.', function (req, res) {
+    res.render('viewer.html');
+  });
+};
 
 function ControllerPersonalRadio(context) {
 	var self = this;
