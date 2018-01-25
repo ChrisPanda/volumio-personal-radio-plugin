@@ -8,15 +8,13 @@ var config = require('v-conf');
 var unirest = require('unirest');
 var crypto = require('crypto');
 var uiTest = require('./uiTest');
+var expressInstance = require('/http/index');
+var expressApp = expressInstance.app;
 
 module.exports = ControllerPersonalRadio;
 
 function ControllerPersonalRadio(context) {
 	var self = this;
-
-  context.get('.', function (req, res) {
-    res.render('viewer.html');
-  });
 
   self.context = context;
   self.commandRouter = this.context.coreCommand;
@@ -27,6 +25,15 @@ function ControllerPersonalRadio(context) {
   self.service = new uiTest(self.logger);
 
   self.logger.info("ControllerPersonalRadio::constructor");
+
+
+  /*
+  app.get('.', function (req, res) {
+    res.render('viewer.html');
+  });
+*/
+  //self.logger.info("PersonalRadio:APP:"+expressApp);
+
 }
 
 ControllerPersonalRadio.prototype.onVolumioStart = function()
