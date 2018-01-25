@@ -8,8 +8,9 @@ var config = require('v-conf');
 var unirest = require('unirest');
 var crypto = require('crypto');
 var uiTest = require('./uiTest');
-var expressInstance = require('/http/index');
-var expressApp = expressInstance.app;
+//var expressInstance = require('/http/index');
+//var expressApp = expressInstance.app
+var api = require('/volumio/http/restapi.js');
 
 module.exports = ControllerPersonalRadio;
 
@@ -26,12 +27,12 @@ function ControllerPersonalRadio(context) {
 
   self.logger.info("ControllerPersonalRadio::constructor");
 
+  api.route('/viewer')
+  .get(function (req, res) {
 
-  /*
-  app.get('.', function (req, res) {
     res.render('viewer.html');
   });
-*/
+
   //self.logger.info("PersonalRadio:APP:"+expressApp);
 
 }
@@ -319,6 +320,12 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
             return self.mpdPlugin.getState().then(function (state) {
                 return self.commandRouter.stateMachine.syncState(state, self.serviceName);
             });
+
+            var Request = unirest.get('volumio.local/api/v1/viewer');
+            Request.end (function (response) {
+              self.logger.info("PersonalRadio:CALLED");
+            });
+
             break;
           default:
             self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
