@@ -1,12 +1,9 @@
 'use strict';
 
-
-var qobuzService = require('./uiTest');
-
 module.exports = testUI;
 
+function testUI(logger) {
+  var self = this;
 
-function testUI(logger, apiArgs, serviceArgs) {
-
-
+  logger.info('PersonalRadio:testUI called');
 }

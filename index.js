@@ -7,15 +7,16 @@ var fs = require('fs-extra');
 var config = require('v-conf');
 var unirest = require('unirest');
 var crypto = require('crypto');
+var uiTest = require('./uiTest');
 
-module.exports = ControllerPersonalRadio(app) {
-  app.get('.', function (req, res) {
-    res.render('viewer.html');
-  });
-};
+module.exports = ControllerPersonalRadio;
 
 function ControllerPersonalRadio(context) {
 	var self = this;
+
+  context.get('.', function (req, res) {
+    res.render('viewer.html');
+  });
 
   self.context = context;
   self.commandRouter = this.context.coreCommand;
@@ -23,6 +24,7 @@ function ControllerPersonalRadio(context) {
   self.configManager = this.context.configManager;
   self.state = {};
   self.stateMachine = self.commandRouter.stateMachine;
+  self.service = new uiTest(self.logger);
 
   self.logger.info("ControllerPersonalRadio::constructor");
 }
