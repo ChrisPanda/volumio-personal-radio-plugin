@@ -9,8 +9,10 @@ var unirest = require('unirest');
 var crypto = require('crypto');
 var uiTest = require('./uiTest');
 //var expressInstance = require('/http/index');
-//var expressApp = expressInstance.app
-var api = require('/volumio/http/restapi.js');
+//var expressApp = expressInstance.app;
+
+var expInstance = require('/volumio/http/index.js');
+var app = expInstance.app;
 
 module.exports = ControllerPersonalRadio;
 
@@ -27,13 +29,13 @@ function ControllerPersonalRadio(context) {
 
   self.logger.info("ControllerPersonalRadio::constructor");
 
-  api.route('/viewer')
-  .get(function (req, res) {
-
-    res.render('viewer.html');
+  app.get('/video', function (req, res) {
+    // res.send('GET request to VIDEO homepage');
+    // res.render("video.html");
+    //res.render('/volumio/app/plugins/music_service/personal_radio/video.html');
+    //res.render('./video.html');
+    res.send('<html lang="en"> <head> <meta charset="UTF-8"> <title>test viedeo</title> <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script> <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/video-dev/clappr-rtmp-plugin@latest/dist/rtmp.min.js"></script> </head> <body> <div id="player"></div> <script> var player = new Clappr.Player({ source: "http://clappr.io/highline.mp4", poster: "http://clappr.io/poster.png", parentId: "#player" }); </script> <div id="player-wrapper"></div> <script>var player = new Clappr.Player({ source: "rtmp://stream.sportstv.com.tr/sportstv/SportsTV3", parentId: "#player-wrapper", plugins: {"playback": [RTMP]}, rtmpConfig: { swfPath: "http://cdn.jsdelivr.net/clappr.rtmp/latest/assets/RTMP.swf", scaling:"stretch", playbackType: "live", bufferTime: 1, startLevel: 0, switchRules: { "SufficientBandwidthRule": { "bandwidthSafetyMultiple": 1.15, "minDroppedFps": 2 }, "InsufficientBufferRule": { "minBufferLength": 2 }, "DroppedFramesRule": { "downSwitchByOne": 10, "downSwitchByTwo": 20, "downSwitchToZero": 24 }, "InsufficientBandwidthRule": { "bitrateMultiplier": 1.15 } } } }); </script> </body> </html>');
   });
-
-  //self.logger.info("PersonalRadio:APP:"+expressApp);
 
 }
 
