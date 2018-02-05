@@ -131,8 +131,8 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
   var response;
   var defer = libQ.defer();
 
-  //response = JSON.parse(JSON.stringify(self.baseNavigation));
   response = self.rootNavigation;
+  response.navigation.lists[0].items = [];
   for (var i in self.rootRadios) {
       var radio = {
           service: self.serviceName,
@@ -168,8 +168,8 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
       radioStation = self.radioStations.linn;
   }
 
-  //response = JSON.parse(JSON.stringify(self.baseNavigation));
   response = self.radioNavigation;
+  response.navigation.lists[0].items = [];
   for (var i in radioStation) {
     var channel = {
       service: self.serviceName,
