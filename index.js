@@ -7,6 +7,7 @@ var fs = require('fs-extra');
 var config = require('v-conf');
 var unirest = require('unirest');
 var crypto = require('crypto');
+var clone = require('clone');
 
 module.exports = ControllerPersonalRadio;
 
@@ -131,7 +132,8 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
   var response;
   var defer = libQ.defer();
 
-  response = JSON.parse(JSON.stringify(self.baseNavigation));
+  //response = JSON.parse(JSON.stringify(self.baseNavigation));
+  response = clone(self.baseNavigation);
   response.navigation.prev.uri = '/';
   for (var i in self.rootRadios) {
       var radio = {
@@ -168,7 +170,8 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
       radioStation = self.radioStations.linn;
   }
 
-  response = JSON.parse(JSON.stringify(self.baseNavigation));
+  //response = JSON.parse(JSON.stringify(self.baseNavigation));
+  response = clone(self.baseNavigation);
   for (var i in radioStation) {
     var channel = {
       service: self.serviceName,
