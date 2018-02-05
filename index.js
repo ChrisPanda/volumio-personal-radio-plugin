@@ -7,7 +7,6 @@ var fs = require('fs-extra');
 var config = require('v-conf');
 var unirest = require('unirest');
 var crypto = require('crypto');
-var clone = require('clone');
 
 module.exports = ControllerPersonalRadio;
 
@@ -133,8 +132,7 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
   var defer = libQ.defer();
 
   //response = JSON.parse(JSON.stringify(self.baseNavigation));
-  response = clone(self.baseNavigation);
-  response.navigation.prev.uri = '/';
+  response = self.rootNavigation;
   for (var i in self.rootRadios) {
       var radio = {
           service: self.serviceName,
@@ -171,7 +169,7 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
   }
 
   //response = JSON.parse(JSON.stringify(self.baseNavigation));
-  response = clone(self.baseNavigation);
+  response = self.radioNavigation;
   for (var i in radioStation) {
     var channel = {
       service: self.serviceName,
@@ -422,10 +420,13 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   var self=this;
 
   var radioResource = fs.readJsonSync(__dirname+'/radio_stations.json');
+  var baseNavigation = radioResource.baseNavigation;
 
   self.rootRadios = radioResource.rootStations;
-  self.baseNavigation = radioResource.baseNavigation;
   self.radioStations = radioResource.stations;
+  self.rootNavigation = JSON.parse(JSON.stringify(baseNavigation));
+  self.radioNavigation = JSON.parse(JSON.stringify(baseNavigation));
+  self.rootNavigation.navigation.prev.uri = '/';
 
   // i18n resource localization
   self.radioStations.kbs[2].title =  self.getRadioI18nString('KBS1_RADIO');
