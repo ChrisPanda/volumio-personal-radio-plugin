@@ -319,7 +319,9 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       self.getStreamUrl(station, baseSbsStreamUrl, query)
         .then(function (responseUrl) {
           if (responseUrl  !== null) {
-
+            var decipher = crypto.createDecipheriv(self.sbsAlgorithm, self.sbsKey, "");
+            var streamUrl = decipher.update(responseUrl, 'base64', 'utf8');
+            streamUrl += decipher.final('utf8');
 
             response["uri"] = streamUrl;
             response["name"] = self.radioStations.sbs[channel].title;
@@ -480,9 +482,9 @@ ControllerPersonalRadio.prototype.getRadioI18nString = function (key) {
 ControllerPersonalRadio.prototype.decodeStreamUrl =
     function (algorithm, secretKey, encodedUri) {
 
-  var decipherKBS = crypto.createDecipher(algorithm, secretKey);
-  var streamUrl = decipherKBS.update(encodedUri, 'hex', 'utf8');
-  streamUrl += decipherKBS.final('utf8');
+  var decipherObj = crypto.createDecipher(algorithm, secretKey);
+  var streamUrl = decipherObj.update(encodedUri, 'hex', 'utf8');
+  streamUrl += decipherObj.final('utf8');
 
   return streamUrl;
 };
