@@ -24,13 +24,13 @@
         {
           "id": "sbsQuality",
           "element": "switch",
-          "label": "SBS",
+          "label": "SBS High Quality",
           "value": true
         },
         {
           "id": "mbcQuality",
           "element": "switch",
-          "label": "MBC",
+          "label": "MBC High Quality",
           "value": true
         }
       ]

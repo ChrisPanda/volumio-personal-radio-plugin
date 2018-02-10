@@ -74,10 +74,10 @@ ControllerPersonalRadio.prototype.getConf = function(configFile) {
   self.config.loadFile(configFile);
 };
 
-ControllerPersonalRadio.prototype.setConf = function(varName, varValue) {
+ControllerPersonalRadio.prototype.setConf = function(conf) {
   var self = this;
 
-  //Perform your installation tasks here
+  fs.writeJsonSync(self.configFile, JSON.stringify(conf));
 };
 
 ControllerPersonalRadio.prototype.getUIConfig = function() {
@@ -131,7 +131,7 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
   }
 
   if(configUpdated) {
-    self.writeBootConfig(self.config)
+    //self.setConf(data);
     .fail(function (e) {
       defer.reject(new error());
     });
@@ -398,6 +398,8 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             var streamUrl = decipher.update(responseUrl, 'base64', 'utf8');
             streamUrl += decipher.final('utf8');
 
+            self.logger.info("ControllerPersonalRadio:SBS_URL:"+streamUrl);
+
             response["uri"] = streamUrl;
             response["name"] = self.radioStations.sbs[channel].title;
             response["title"] = self.radioStations.sbs[channel].title;
@@ -431,6 +433,8 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
               streamUrl = null;
               self.errorToast(station, 'INCORRECT_RESPONSE');
             }
+
+            self.logger.info("ControllerPersonalRadio:MBC_URL:"+streamUrl);
 
             response["uri"] = streamUrl;
             response["name"] = self.radioStations.mbc[channel].title;
