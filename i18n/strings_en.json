@@ -21,6 +21,7 @@
   "CONFIG": {
     "TITLE": "Radio Configuration",
     "RADIO_PROTOCOL": "Radio Protocol",
+    "PROTOCOL_SETUP_GUIDE": "Setup Guide: If you hear some clipping sound from radio, please enable bellowing HTTP option.",
     "APPLY": "Apply",
     "SBS_ENABLE_HTTP": "enable SBS HTTP",
     "MBC_ENABLE_HTTP": "enable MBC HTTP"

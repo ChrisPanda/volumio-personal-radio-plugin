@@ -8,6 +8,7 @@
       "element": "section",
       "label": "TRANSLATE.CONFIG.RADIO_PROTOCOL",
       "icon": "fa-cogs",
+      "description": "TRANSLATE.CONFIG.PROTOCOL_SETUP_GUIDE",
       "onSave": {
         "type": "controller",
         "endpoint":"music_service/personal_radio",

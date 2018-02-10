@@ -21,6 +21,7 @@
   "CONFIG": {
     "TITLE": "라디오 설정",
     "RADIO_PROTOCOL": "라디오 전송 방식",
+    "PROTOCOL_SETUP_GUIDE": "설정 가이드: 라디오 청취시 끊김현상이 있으면 아래 HTTP를 활성화 하시기 바랍니다",
     "APPLY": "반영",
     "SBS_ENABLE_HTTP": "SBS HTTP 활성화",
     "MBC_ENABLE_HTTP": "MBC HTTP 활성화"

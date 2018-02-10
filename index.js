@@ -32,8 +32,6 @@ ControllerPersonalRadio.prototype.onVolumioStart = function()
   self.sbsProtocol =  self.config.get('sbsProtocol');
   self.mbcProtocol =  self.config.get('mbcProtocol');
 
-  self.logger.info("ControllerPersonalRadio:onVolumioStart:"+self.sbsProtocol+":"+self.mbcProtocol);
-
   return libQ.resolve();
 };
 
@@ -93,9 +91,6 @@ ControllerPersonalRadio.prototype.getUIConfig = function() {
       __dirname + '/UIConfig.json')
   .then(function(uiconf)
   {
-    self.logger.info("ControllerPersonalRadio:sbsProtocol:"+self.config.get('sbsProtocol'));
-    self.logger.info("ControllerPersonalRadio:mbcProtocol:"+self.config.get('mbcProtocol'));
-
     uiconf.sections[0].content[0].value = self.config.get('sbsProtocol');
     uiconf.sections[0].content[1].value = self.config.get('mbcProtocol');
 
@@ -134,8 +129,6 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
     self.mbcProtocol = data['mbcProtocol'];
     configUpdated = true;
   }
-
-  self.logger.info("ControllerPersonalRadio:updateConfig:"+self.sbsProtocol+":"+self.mbcProtocol);
 
   if(configUpdated) {
     /*
@@ -395,9 +388,9 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
     case 'websbs':
       var device;
       if(self.sbsProtocol === true)
-        device = 'pc';
-      else
         device = 'mobile';
+      else
+        device = 'pc';
 
       var baseSbsStreamUrl = self.baseSbsStreamUrl + self.radioStations.sbs[channel].channel;
       self.getStreamUrl(station, baseSbsStreamUrl, {device: device})
@@ -406,8 +399,6 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             var decipher = crypto.createDecipheriv(self.sbsAlgorithm, self.sbsKey, "");
             var streamUrl = decipher.update(responseUrl, 'base64', 'utf8');
             streamUrl += decipher.final('utf8');
-
-            self.logger.info("ControllerPersonalRadio:SBS_URL:"+streamUrl);
 
             response["uri"] = streamUrl;
             response["name"] = self.radioStations.sbs[channel].title;
@@ -420,12 +411,12 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
     case 'webmbc':
       var agent, protocol;
       if(self.mbcProtocol === true) {
-        agent = 'pc';
-        protocol = 'RTMP';
-      }
-      else {
         agent = 'android';
         protocol = 'M3U8';
+      }
+      else {
+        agent = 'pc';
+        protocol = 'RTMP';
       }
 
       query = {
@@ -442,8 +433,6 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
               streamUrl = null;
               self.errorToast(station, 'INCORRECT_RESPONSE');
             }
-
-            self.logger.info("ControllerPersonalRadio:MBC_URL:"+streamUrl);
 
             response["uri"] = streamUrl;
             response["name"] = self.radioStations.mbc[channel].title;
@@ -559,7 +548,6 @@ ControllerPersonalRadio.prototype.loadRadioI18nStrings = function () {
 
   try {
     var language_code = this.commandRouter.sharedVars.get('language_code');
-    self.logger.info("PersonalRadio:lang:"+language_code);
     self.i18nStrings=fs.readJsonSync(__dirname+'/i18n/strings_'+language_code+".json");
   } catch(e) {
     self.i18nStrings=fs.readJsonSync(__dirname+'/i18n/strings_en.json');
