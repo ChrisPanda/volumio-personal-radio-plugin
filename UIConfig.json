@@ -14,7 +14,7 @@
         "method":"updateConfig"
       },
       "saveButton": {
-        "label": "TRANSLATE.CONFIG.SAVE",
+        "label": "TRANSLATE.CONFIG.APPLY",
         "data": [
           "sbsQuality",
           "mbcQuality"

@@ -141,23 +141,19 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
     });
     */
 
-    self.logger.info("ControllerPersonalRadio:updated config:"+self.runRadioStation);
-    if ( (self.runRadioStation === 'SBS') || (self.runRadioStation === 'MBC') )
-    {
-      var responseData = {
-        title: self.getRadioI18nString('PLUGIN_NAME'),
-        message: self.getRadioI18nString('STOP_RADIO_STATION'),
-        size: 'md',
-        buttons: [{
-          name: 'Close',
-          class: 'btn btn-info'
-        }]
-      };
+    self.logger.info("ControllerPersonalRadio:updated config:");
 
-      self.commandRouter.broadcastMessage("openModal", responseData);
-      self.mpdPlugin.sendMpdCommand('stop', []);
-      self.runRadioStation = null;
-    }
+    var responseData = {
+      title: self.getRadioI18nString('PLUGIN_NAME'),
+      message: self.getRadioI18nString('STOP_RADIO_STATION'),
+      size: 'md',
+      buttons: [{
+        name: 'Close',
+        class: 'btn btn-info'
+      }]
+    };
+
+    self.commandRouter.broadcastMessage("openModal", responseData);
   }
 
   return defer.promise;
@@ -287,7 +283,6 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
 
       return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
-        self.runRadioStation = track.radioType;
         switch (track.radioType) {
           case 'kbs':
           case 'sbs':
@@ -316,7 +311,6 @@ ControllerPersonalRadio.prototype.seek = function (position) {
 ControllerPersonalRadio.prototype.stop = function() {
 	var self = this;
 
-  self.runRadioStation = null;
   self.commandRouter.pushToastMessage(
       'info',
       self.getRadioI18nString('PLUGIN_NAME'),
