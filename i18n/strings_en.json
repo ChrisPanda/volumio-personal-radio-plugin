@@ -16,5 +16,10 @@
   "MBC_CHANNEL_M": "MBC Channel M",
   "SBS_POWER_FM": "SBS PowerFM",
   "SBS_LOVE_FM": "SBS LoveFM",
-  "SBS_INTERNET_RADIO": "SBS Internet Radio"
+  "SBS_INTERNET_RADIO": "SBS Internet Radio",
+  "CONFIG": {
+    "TITLE": "Radio Configuration",
+    "QUALITY": "Quality",
+    "SAVE": "Save"
+  }
 }

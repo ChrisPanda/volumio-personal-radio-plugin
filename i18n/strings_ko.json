@@ -16,5 +16,10 @@
   "MBC_CHANNEL_M": "MBC 인터넷 라디오",
   "SBS_POWER_FM": "SBS 파워FM",
   "SBS_LOVE_FM": "SBS 러브FM",
-  "SBS_INTERNET_RADIO": "SBS 인터넷 라디오"
+  "SBS_INTERNET_RADIO": "SBS 인터넷 라디오",
+  "CONFIG": {
+    "TITLE": "라디오 설정",
+    "QUALITY": "품질",
+    "SAVE": "저장"
+  }
 }

@@ -29,7 +29,8 @@ ControllerPersonalRadio.prototype.onVolumioStart = function()
 
   self.configFile=this.commandRouter.pluginManager.getConfigurationFile(this.context,'config.json');
   self.getConf(self.configFile);
-
+  self.sbsQuality =  self.config.get('sbsQuality');
+  self.mbcQuality =  self.config.get('mbcQuality');
 
   return libQ.resolve();
 };
@@ -79,6 +80,77 @@ ControllerPersonalRadio.prototype.setConf = function(varName, varValue) {
   //Perform your installation tasks here
 };
 
+ControllerPersonalRadio.prototype.getUIConfig = function() {
+  var self = this;
+  var defer = libQ.defer();
+  var lang_code = this.commandRouter.sharedVars.get('language_code');
+
+  self.getConf(this.configFile);
+  self.commandRouter.i18nJson(__dirname+'/i18n/strings_' + lang_code + '.json',
+      __dirname + '/i18n/strings_en.json',
+      __dirname + '/UIConfig.json')
+  .then(function(uiconf)
+  {
+    uiconf.sections[0].content[0].value = self.config.get('sbsQuality');
+    uiconf.sections[0].content[1].value = self.config.get('mbcQuality');
+
+    defer.resolve(uiconf);
+  })
+  .fail(function()
+  {
+    defer.reject(new Error());
+  });
+
+  return defer.promise;
+};
+
+ControllerPersonalRadio.prototype.setUIConfig = function(data)
+{
+  var self = this;
+
+  var uiconf=fs.readJsonSync(__dirname+'/UIConfig.json');
+
+  return libQ.resolve();
+};
+
+ControllerPersonalRadio.prototype.updateConfig = function (data) {
+  var self = this;
+  var defer = libQ.defer();
+  var configUpdated = false;
+
+  if (self.config.get('sbsQuality') != data['sbsQuality']) {
+    self.config.set('sbsQuality', data['sbsQuality']);
+    self.sbsQuality = data['sbsQuality'];
+    configUpdated = true;
+  }
+
+  if (self.config.get('mbcQuality') != data['mbcQuality']) {
+    self.config.set('mbcQuality', data['mbcQuality']);
+    self.mbcQuality = data['mbcQuality'];
+    configUpdated = true;
+  }
+
+  if(configUpdated) {
+    self.writeBootConfig(self.config)
+    .fail(function (e) {
+      defer.reject(new error());
+    });
+
+    self.logger.info("ControllerPersonalRadio: updated configuration");
+    var responseData = {
+      title: self.getRadioI18nString('PLUGIN_NAME'),
+      message: 'please restart selected radio channel to use changed radio quality',
+      size: 'md',
+      buttons: [{
+        name: 'Close',
+        class: 'btn btn-info'
+      }]
+    };
+    self.commandRouter.broadcastMessage("openModal", responseData);
+  }
+
+  return defer.promise;
+};
 
 // Playback Controls ---------------------------------------------------------
 ControllerPersonalRadio.prototype.addToBrowseSources = function () {
@@ -312,11 +384,14 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'websbs':
-      query = {
-        device: 'pc'
-      };
+      var device;
+      if(self.sbsQuality === true)
+        device = 'pc';
+      else
+        device = 'mobile';
+
       var baseSbsStreamUrl = self.baseSbsStreamUrl + self.radioStations.sbs[channel].channel;
-      self.getStreamUrl(station, baseSbsStreamUrl, query)
+      self.getStreamUrl(station, baseSbsStreamUrl, {device: device})
         .then(function (responseUrl) {
           if (responseUrl  !== null) {
             var decipher = crypto.createDecipheriv(self.sbsAlgorithm, self.sbsKey, "");
@@ -332,10 +407,20 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'webmbc':
+      var agent, protocol;
+      if(self.mbcQuality === true) {
+        agent = 'pc';
+        protocol = 'RTMP';
+      }
+      else {
+        agent = 'android';
+        protocol = 'M3U8';
+      }
+
       query = {
         channel: self.radioStations.mbc[channel].channel,
-        agent: 'agent',
-        protocol: 'RTMP'
+        agent: agent,
+        protocol: protocol
       };
       self.getStreamUrl(station, self.baseMbcStreamUrl, query)
         .then(function (responseUrl) {

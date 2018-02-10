@@ -1,0 +1,39 @@
+{
+  "page": {
+    "label": "TRANSLATE.CONFIG.TITLE"
+  },
+  "sections": [
+    {
+      "id": "quality",
+      "element": "section",
+      "label": "TRANSLATE.CONFIG.QUALITY",
+      "icon": "fa-cogs",
+      "onSave": {
+        "type": "controller",
+        "endpoint":"music_service/personal_radio",
+        "method":"updateConfig"
+      },
+      "saveButton": {
+        "label": "TRANSLATE.CONFIG.SAVE",
+        "data": [
+          "sbsQuality",
+          "mbcQuality"
+        ]
+      },
+      "content": [
+        {
+          "id": "sbsQuality",
+          "element": "switch",
+          "label": "SBS",
+          "value": true
+        },
+        {
+          "id": "mbcQuality",
+          "element": "switch",
+          "label": "MBC",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

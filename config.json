@@ -2,5 +2,13 @@
   "enabled": {
     "type": "boolean",
     "value": false
+  },
+  "sbsQuality": {
+    "type": "boolean",
+    "value": "false"
+  },
+  "mbcQuality": {
+    "type": "boolean",
+    "value": "false"
   }
 }
