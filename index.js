@@ -29,8 +29,10 @@ ControllerPersonalRadio.prototype.onVolumioStart = function()
 
   self.configFile=this.commandRouter.pluginManager.getConfigurationFile(this.context,'config.json');
   self.getConf(self.configFile);
-  self.sbsQuality =  self.config.get('sbsQuality');
-  self.mbcQuality =  self.config.get('mbcQuality');
+  self.sbsProtocol =  self.config.get('sbsProtocol');
+  self.mbcProtocol =  self.config.get('mbcProtocol');
+
+  self.logger.info("ControllerPersonalRadio:onVolumioStart:"+self.sbsProtocol+":"+self.mbcProtocol);
 
   return libQ.resolve();
 };
@@ -91,11 +93,11 @@ ControllerPersonalRadio.prototype.getUIConfig = function() {
       __dirname + '/UIConfig.json')
   .then(function(uiconf)
   {
-    self.logger.info("ControllerPersonalRadio:sbsQuality:"+self.config.get('sbsQuality'));
-    self.logger.info("ControllerPersonalRadio:mbcQuality:"+self.config.get('mbcQuality'));
+    self.logger.info("ControllerPersonalRadio:sbsProtocol:"+self.config.get('sbsProtocol'));
+    self.logger.info("ControllerPersonalRadio:mbcProtocol:"+self.config.get('mbcProtocol'));
 
-    uiconf.sections[0].content[0].value = self.config.get('sbsQuality');
-    uiconf.sections[0].content[1].value = self.config.get('mbcQuality');
+    uiconf.sections[0].content[0].value = self.config.get('sbsProtocol');
+    uiconf.sections[0].content[1].value = self.config.get('mbcProtocol');
 
     defer.resolve(uiconf);
   })
@@ -121,17 +123,19 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
   var defer = libQ.defer();
   var configUpdated = false;
 
-  if (self.config.get('sbsQuality') != data['sbsQuality']) {
-    self.config.set('sbsQuality', data['sbsQuality']);
-    self.sbsQuality = data['sbsQuality'];
+  if (self.config.get('sbsProtocol') != data['sbsProtocol']) {
+    self.config.set('sbsProtocol', data['sbsProtocol']);
+    self.sbsProtocol = data['sbsProtocol'];
     configUpdated = true;
   }
 
-  if (self.config.get('mbcQuality') != data['mbcQuality']) {
-    self.config.set('mbcQuality', data['mbcQuality']);
-    self.mbcQuality = data['mbcQuality'];
+  if (self.config.get('mbcProtocol') != data['mbcProtocol']) {
+    self.config.set('mbcProtocol', data['mbcProtocol']);
+    self.mbcProtocol = data['mbcProtocol'];
     configUpdated = true;
   }
+
+  self.logger.info("ControllerPersonalRadio:updateConfig:"+self.sbsProtocol+":"+self.mbcProtocol);
 
   if(configUpdated) {
     /*
@@ -140,8 +144,6 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
       defer.reject(new error());
     });
     */
-
-    self.logger.info("ControllerPersonalRadio:updated config:");
 
     var responseData = {
       title: self.getRadioI18nString('PLUGIN_NAME'),
@@ -392,7 +394,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
     case 'websbs':
       var device;
-      if(self.sbsQuality === true)
+      if(self.sbsProtocol === true)
         device = 'pc';
       else
         device = 'mobile';
@@ -417,7 +419,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
     case 'webmbc':
       var agent, protocol;
-      if(self.mbcQuality === true) {
+      if(self.mbcProtocol === true) {
         agent = 'pc';
         protocol = 'RTMP';
       }

@@ -6,7 +6,7 @@
     {
       "id": "quality",
       "element": "section",
-      "label": "TRANSLATE.CONFIG.QUALITY",
+      "label": "TRANSLATE.CONFIG.RADIO_PROTOCOL",
       "icon": "fa-cogs",
       "onSave": {
         "type": "controller",
@@ -16,21 +16,21 @@
       "saveButton": {
         "label": "TRANSLATE.CONFIG.APPLY",
         "data": [
-          "sbsQuality",
-          "mbcQuality"
+          "sbsProtocol",
+          "mbcProtocol"
         ]
       },
       "content": [
         {
-          "id": "sbsQuality",
+          "id": "sbsProtocol",
           "element": "switch",
-          "label": "TRANSLATE.CONFIG.SBS_HIGH_QUALITY",
+          "label": "TRANSLATE.CONFIG.SBS_ENABLE_HTTP",
           "value": true
         },
         {
-          "id": "mbcQuality",
+          "id": "mbcProtocol",
           "element": "switch",
-          "label": "TRANSLATE.CONFIG.MBC_HIGH_QUALITY",
+          "label": "TRANSLATE.CONFIG.MBC_ENABLE_HTTP",
           "value": true
         }
       ]

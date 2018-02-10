@@ -3,12 +3,12 @@
     "type": "boolean",
     "value": false
   },
-  "sbsQuality": {
+  "sbsProtocol": {
     "type": "boolean",
-    "value": "false"
+    "value": "true"
   },
-  "mbcQuality": {
+  "mbcProtocol": {
     "type": "boolean",
-    "value": "false"
+    "value": "true"
   }
 }
