@@ -24,13 +24,13 @@
         {
           "id": "sbsQuality",
           "element": "switch",
-          "label": "SBS High Quality",
+          "label": "TRANSLATE.CONFIG.SBS_HIGH_QUALITY",
           "value": true
         },
         {
           "id": "mbcQuality",
           "element": "switch",
-          "label": "MBC High Quality",
+          "label": "TRANSLATE.CONFIG.MBC_HIGH_QUALITY",
           "value": true
         }
       ]

@@ -6,6 +6,7 @@
   "INCORRECT_RESPONSE":  "{0} 라디오 스트리밍 서버의 결과가 비정상적입니다.",
   "ERROR_SECRET_KEY_SERVER": "한국 라디오 방송 암호화 키 서버에 문제가 있습니다.",
   "ERROR_SECRET_KEY": "플러그인이 한국 라디오 URL을 위한 암호키를 가져올 수 없습니다.",
+  "STOP_RADIO_STATION": "라디오 품질 변경을 반영위해 청취중인 라디오를 중지합니다.",
   "KBS1_RADIO": "KBS1 라디오",
   "KBS2_RADIO": "KBS2 라디오",
   "KBS3_RADIO": "KBS3 라디오",
@@ -20,6 +21,8 @@
   "CONFIG": {
     "TITLE": "라디오 설정",
     "QUALITY": "품질",
-    "SAVE": "저장"
+    "SAVE": "저장",
+    "SBS_HIGH_QUALITY": "SBS 고품질",
+    "MBC_HIGH_QUALITY": "MBC 고품질"
   }
 }

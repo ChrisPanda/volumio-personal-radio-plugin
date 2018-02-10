@@ -91,6 +91,9 @@ ControllerPersonalRadio.prototype.getUIConfig = function() {
       __dirname + '/UIConfig.json')
   .then(function(uiconf)
   {
+    self.logger.info("ControllerPersonalRadio:sbsQuality:"+self.config.get('sbsQuality'));
+    self.logger.info("ControllerPersonalRadio:mbcQuality:"+self.config.get('mbcQuality'));
+
     uiconf.sections[0].content[0].value = self.config.get('sbsQuality');
     uiconf.sections[0].content[1].value = self.config.get('mbcQuality');
 
@@ -131,22 +134,30 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
   }
 
   if(configUpdated) {
-    //self.setConf(data);
+    /*
+    self.setConf(data);
     .fail(function (e) {
       defer.reject(new error());
     });
+    */
 
-    self.logger.info("ControllerPersonalRadio: updated configuration");
-    var responseData = {
-      title: self.getRadioI18nString('PLUGIN_NAME'),
-      message: 'please restart selected radio channel to use changed radio quality',
-      size: 'md',
-      buttons: [{
-        name: 'Close',
-        class: 'btn btn-info'
-      }]
-    };
-    self.commandRouter.broadcastMessage("openModal", responseData);
+    self.logger.info("ControllerPersonalRadio:updated config:"+self.runRadioStation);
+    if ( (self.runRadioStation === 'SBS') || (self.runRadioStation === 'MBC') )
+    {
+      var responseData = {
+        title: self.getRadioI18nString('PLUGIN_NAME'),
+        message: self.getRadioI18nString('STOP_RADIO_STATION'),
+        size: 'md',
+        buttons: [{
+          name: 'Close',
+          class: 'btn btn-info'
+        }]
+      };
+
+      self.commandRouter.broadcastMessage("openModal", responseData);
+      self.mpdPlugin.sendMpdCommand('stop', []);
+      self.runRadioStation = null;
+    }
   }
 
   return defer.promise;
@@ -276,6 +287,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
 
       return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
+        self.runRadioStation = track.radioType;
         switch (track.radioType) {
           case 'kbs':
           case 'sbs':
@@ -304,6 +316,7 @@ ControllerPersonalRadio.prototype.seek = function (position) {
 ControllerPersonalRadio.prototype.stop = function() {
 	var self = this;
 
+  self.runRadioStation = null;
   self.commandRouter.pushToastMessage(
       'info',
       self.getRadioI18nString('PLUGIN_NAME'),
