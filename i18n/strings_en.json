@@ -6,12 +6,12 @@
   "INCORRECT_RESPONSE":  "There is incorrect response from {0} radio streaming server.",
   "ERROR_SECRET_KEY_SERVER": "There is a problem in Korean radio secret key server.",
   "ERROR_SECRET_KEY": "Plugin can't get secretKey for Korean Radio URL",
-  "STOP_RADIO_STATION": "Please stop running radio station(SBS, MBC) and play again at main radio menu to use changed radio protocol",
+  "STOP_RADIO_STATION": "Please stop running radio station(SBS, MBC) and play again at MAIN radio menu to use changed radio protocol",
   "KBS1_RADIO": "KBS1 Radio",
   "KBS2_RADIO": "KBS2 Radio",
   "KBS3_RADIO": "KBS3 Radio",
   "KBS_UNION": "KBS Union",
-  "KBS_WORLD": "KBS World",
+  "KBS_WORLD": "KBS World (English)",
   "MBC_STANDARD": "MBC Standard FM",
   "MBC_FM4U": "MBC FM4U",
   "MBC_CHANNEL_M": "MBC Channel M",
@@ -21,8 +21,8 @@
   "CONFIG": {
     "TITLE": "Radio Configuration",
     "RADIO_PROTOCOL": "Radio Protocol",
-    "PROTOCOL_SETUP_GUIDE": "Setup Guide: If you hear some clipping sound from radio, please enable bellowing HTTP option.",
-    "APPLY": "Apply",
+    "PROTOCOL_SETUP_GUIDE": "Setup Guide: If you hear some clipping sound from radio, please enable bellowing HTTP option. (default value is enabling HTTP)",
+    "SAVE": "Save",
     "SBS_ENABLE_HTTP": "enable SBS HTTP",
     "MBC_ENABLE_HTTP": "enable MBC HTTP"
   }

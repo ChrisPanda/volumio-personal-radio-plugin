@@ -131,13 +131,6 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
   }
 
   if(configUpdated) {
-    /*
-    self.setConf(data);
-    .fail(function (e) {
-      defer.reject(new error());
-    });
-    */
-
     var responseData = {
       title: self.getRadioI18nString('PLUGIN_NAME'),
       message: self.getRadioI18nString('STOP_RADIO_STATION'),

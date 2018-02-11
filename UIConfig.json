@@ -15,7 +15,7 @@
         "method":"updateConfig"
       },
       "saveButton": {
-        "label": "TRANSLATE.CONFIG.APPLY",
+        "label": "TRANSLATE.CONFIG.SAVE",
         "data": [
           "sbsProtocol",
           "mbcProtocol"

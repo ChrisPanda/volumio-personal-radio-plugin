@@ -18,15 +18,15 @@
 
   "rootStations": [
     {
-      "title": "KBS",
+      "title": "Korean KBS",
       "uri": "kradio/kbs"
     },
     {
-      "title": "SBS",
+      "title": "Korean SBS",
       "uri": "kradio/sbs"
     },
     {
-      "title": "MBC",
+      "title": "Korean MBC",
       "uri": "kradio/mbc"
     },
     {
