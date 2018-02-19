@@ -16,24 +16,24 @@
     }
   },
 
-  "rootStations": [
-    {
+  "rootStations": {
+    "kbs": {
       "title": "Korean KBS",
       "uri": "kradio/kbs"
     },
-    {
+    "sbs": {
       "title": "Korean SBS",
       "uri": "kradio/sbs"
     },
-    {
+    "mbc": {
       "title": "Korean MBC",
       "uri": "kradio/mbc"
     },
-    {
+    "linn": {
       "title": "Linn",
       "uri": "kradio/linn"
     }
-  ],
+  },
 
   "stations": {
     "linn": [

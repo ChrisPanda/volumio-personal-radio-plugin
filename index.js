@@ -200,16 +200,17 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
 
   response = self.rootNavigation;
   response.navigation.lists[0].items = [];
-  for (var i in self.rootRadios) {
+  self.rootStations.forEach (function (item) {
       var radio = {
-          service: self.serviceName,
-          type: 'folder',
-          title: self.rootRadios[i].title,
-          icon: 'fa fa-folder-open-o',
-          uri: self.rootRadios[i].uri
+        service: self.serviceName,
+        type: 'folder',
+        title: item.title,
+        icon: 'fa fa-folder-open-o',
+        uri: item.uri
       };
       response.navigation.lists[0].items.push(radio);
-  }
+    }
+  );
   defer.resolve(response);
 
   return defer.promise;
@@ -504,13 +505,17 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   var radioResource = fs.readJsonSync(__dirname+'/radio_stations.json');
   var baseNavigation = radioResource.baseNavigation;
 
-  self.rootRadios = radioResource.rootStations;
+  self.rootStations = radioResource.rootStations;
   self.radioStations = radioResource.stations;
   self.rootNavigation = JSON.parse(JSON.stringify(baseNavigation));
   self.radioNavigation = JSON.parse(JSON.stringify(baseNavigation));
   self.rootNavigation.navigation.prev.uri = '/';
 
   // i18n resource localization
+  self.rootStations.kbs.title =  self.getRadioI18nString('KBS');
+  self.rootStations.sbs.title =  self.getRadioI18nString('SBS');
+  self.rootStations.mbc.title =  self.getRadioI18nString('MBC');
+
   self.radioStations.kbs[2].title =  self.getRadioI18nString('KBS1_RADIO');
   self.radioStations.kbs[3].title =  self.getRadioI18nString('KBS2_RADIO');
   self.radioStations.kbs[4].title =  self.getRadioI18nString('KBS3_RADIO');
