@@ -200,19 +200,17 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
 
   response = self.rootNavigation;
   response.navigation.lists[0].items = [];
-  self.rootStations.forEach (function (item) {
+  for (var key in self.rootStations) {
       var radio = {
         service: self.serviceName,
         type: 'folder',
-        title: item.title,
+        title: self.rootStations[key].title,
         icon: 'fa fa-folder-open-o',
-        uri: item.uri
+        uri: self.rootStations[key].uri
       };
       response.navigation.lists[0].items.push(radio);
-    }
-  );
+  }
   defer.resolve(response);
-
   return defer.promise;
 };
 
