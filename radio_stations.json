@@ -128,43 +128,43 @@
     "bbc": [
       {
         "title": "BBC Radio1 Podcast",
-        "uri": "kradio/bbc_radio1"
+        "uri": "bbc:radio1"
       },
       {
         "title": "BBC Radio 1Xtra Podcast",
-        "uri": "kradio/bbc_1xtra"
+        "uri": "bbc:1xtra"
       },
       {
         "title": "BBC Radio2 Podcast",
-        "uri": "kradio/bbc_radio2"
+        "uri": "bbc:radio2"
       },
       {
         "title": "BBC Radio3 Podcast",
-        "uri": "kradio/bbc_radio3"
+        "uri": "bbc:radio3"
       },
       {
         "title": "BBC Radio4 Podcast",
-        "uri": "kradio/bbc_radio4extra"
+        "uri": "bbc:radio4extra"
       },
       {
         "title": "BBC Radio5 live Podcast",
-        "uri": "kradio/bbc_5live"
+        "uri": "bbc:bbc_5live"
       },
       {
         "title": "BBC Radio5 live sports extra Podcast",
-        "uri": "kradio/bbc_5livesportsextra"
+        "uri": "bbc:bbc_5livesportsextra"
       },
       {
         "title": "BBC Radio6 Music Podcast",
-        "uri": "kradio/bbc_6music"
+        "uri": "bbc:bbc_6music"
       },
       {
         "title": "BBC Asian Network",
-        "uri": "kradio/bbc_asiannetwork"
+        "uri": "bbc:bbc_asiannetwork"
       },
       {
         "title": "BBC World Service",
-        "uri": "kradio/bbc_worldserviceradio"
+        "uri": "bbc:bbc_worldserviceradio"
       }
     ]
   },
