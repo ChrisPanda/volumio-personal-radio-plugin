@@ -187,7 +187,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
     else if (curUri.startsWith('kradio/bbc')) {
       if (curUri === 'kradio/bbc')
         response = self.getRadioContent('bbc');
-      else if (curUri === 'kradio/bbc/podcast' + uriParts[3])
+      else if (curUri === 'kradio/bbc/podcast/' + uriParts[3])
         self.getPodcastBBC(uriParts[3]).then(function(response) {
           return response;
         });
@@ -239,7 +239,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
         for (var item in parseResult) {
           var channel = {
             service: self.serviceName,
-            type: 'mywebradio',
+            type: 'folder',
             title: item.title,
             artist: '',
             album: '',
@@ -350,13 +350,18 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
   for (var i in radioStation) {
     var channel = {
       service: self.serviceName,
-      type: 'mywebradio',
       title: radioStation[i].title,
-      artist: '',
-      album: '',
       icon: 'fa fa-music',
       uri: radioStation[i].uri
     };
+    if (station === 'bbc') {
+      channel["type"] = 'folder';
+      channel["icon"] = 'fa fa-folder-open-o';
+    }
+    else {
+      channel["type"] = 'mywebradio';
+      channel["icon"] = 'fa fa-music';
+    }
     response.navigation.lists[0].items.push(channel);
   }
   defer.resolve(response);
