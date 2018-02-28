@@ -123,48 +123,48 @@
         "title": "SBS Internet Radio",
         "uri": "websbs/2",
         "channel": "RA03"
-      },
+      }
     ],
     "bbc": [
       {
         "title": "BBC Radio1 Podcast",
-        "uri": "podcast/radio1"
+        "uri": "kradio/bbc/podcast/radio1"
       },
       {
         "title": "BBC Radio 1Xtra Podcast",
-        "uri": "podcast/1xtra"
+        "uri": "kradio/bbc/podcast/1xtra"
       },
       {
         "title": "BBC Radio2 Podcast",
-        "uri": "podcast/radio2"
+        "uri": "kradio/bbc/podcast/radio2"
       },
       {
         "title": "BBC Radio3 Podcast",
-        "uri": "podcast/radio3"
+        "uri": "kradio/bbc/podcast/radio3"
       },
       {
         "title": "BBC Radio4 Podcast",
-        "uri": "podcast/radio4extra"
+        "uri": "kradio/bbc/podcast/radio4extra"
       },
       {
         "title": "BBC Radio5 live Podcast",
-        "uri": "podcast/5live"
+        "uri": "kradio/bbc/podcast/5live"
       },
       {
         "title": "BBC Radio5 live sports extra Podcast",
-        "uri": "podcast/5livesportsextra"
+        "uri": "kradio/bbc/podcast/5livesportsextra"
       },
       {
         "title": "BBC Radio6 Music Podcast",
-        "uri": "podcast/6music"
+        "uri": "kradio/bbc/podcast/6music"
       },
       {
         "title": "BBC Asian Network",
-        "uri": "podcast/asiannetwork"
+        "uri": "kradio/bbc/podcast/asiannetwork"
       },
       {
         "title": "BBC World Service",
-        "uri": "podcast/worldserviceradio"
+        "uri": "kradio/bbc/podcast/worldserviceradio"
       }
     ]
   },

@@ -167,6 +167,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
   var response;
 
   self.logger.info("ControllerPersonalRadio::handleBrowseUri:"+curUri);
+  var uriParts = curUri.split('/');
   if (curUri.startsWith('kradio')) {
     if (curUri === 'kradio') {
       response = self.getRootContent();
@@ -183,91 +184,17 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
     else if (curUri === 'kradio/linn') {
       response = self.getRadioContent('linn');
     }
-    else if (curUri === 'kradio/bbc') {
-      response = self.getRadioContent('bbc');
-    }
-    else if (curUri === 'kradio/bbc/podcast') {
-      var uris = curUri.split("/");
-      var streamUrl = 'http://www.bbc.co.uk/podcasts/' + uris[3];
-      self.logger.info("ControllerPersonalRadio::handleBrowseUri:BBC::"+streamUrl);
-
-      unirest
-      .get(streamUrl)
-      .end(function (response) {
-        if (response.status === 200) {
-          htmlToJson.parse(response.body, ['a[data-istats-package]',
-            {
-              'uri': function ($a) {
-                return $a.attr('href');
-              },
-              'title': function ($a) {
-                return $a.find('h3[class]').text().trim();
-              },
-              'img': function ($a) {
-                return $a.find('img[aria-hidden]').attr('src');
-              }
-            }
-          ])
-          .done(function (parseResult) {
-            self.bbcNavigation.navigation.prev.uri = 'webbbc';
-            var response = self.bbcNavigation;
-            response.navigation.lists[0].items = [];
-            for (var item in parseResult) {
-              var channel = {
-                service: self.serviceName,
-                type: 'mywebradio',
-                title: item.title,
-                artist: '',
-                album: '',
-                icon: 'fa fa-music',
-                uri: 'bbc/' + parseResult.indexOf(item) + '/' + item.uri.match(
-                    /programmes\/(.*)\/episodes/)[1]
-              };
-              response.navigation.lists[0].items.push(channel);
-            }
-            defer.resolve(response);
-          });
-
-        } else {
-          defer.resolve(null);
-        }
-      });
-    }
-    else if (curUri === 'kradio/bbc/podcast/webbbc') {
-      var uris = curUri.split("/");
-      var rssParser = new RssParser({
-        customFields: {
-          channel: ['image'],
-          item: [
-            'enclosure',
-            ['ppg:enclosureLegacy', 'enclosureLegacy'],
-            ['ppg:enclosureSecure', 'enclosureSecure']
-          ]
-        }
-      });
-
-      rssParser.parseURL('http://podcasts.files.bbci.co.uk/' + uris[4] + '.rss', function(err, feed) {
-        feed.items.forEach(function(entry) {
-          console.log(entry.title + ':' + entry.enclosureSecure.$.url);
-
-          self.bbcNavigation.navigation.prev.uri = 'webbbc';
-          var response = self.bbcNavigation;
-          response.navigation.lists[0].items = [];
-
-          var channel = {
-            service: self.serviceName,
-            type: 'mywebradio',
-            title: entry.title,
-            artist: '',
-            album: '',
-            icon: 'fa fa-music',
-            uri: 'webbbc/' + uris[4],
-            url: entry.enclosureSecure.$.url
-          };
-          response.navigation.lists[0].items.push(channel);
-        })
-      });
-
+    else if (curUri.startsWith('kradio/bbc')) {
+      if (curUri === 'kradio/bbc')
+        response = self.getRadioContent('bbc');
+      else if (curUri === 'kradio/bbc/podcast' + uriParts[3])
+        self.getPodcastBBC(uriParts[3]).then(function(response) {
+          return response;
+        });
+      else if (curUri === 'kradio/bbc/podcast/'+uriParts[3]+'/'+ uriParts[4])
+        self.getPodcastArticle(uriParts[4]).then(function(response) {
+          return response;
+        });
     }
     else {
       response = libQ.reject();
@@ -279,6 +206,100 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
       self.logger.info('[' + Date.now() + '] ' + 'ControllerPersonalRadio::handleBrowseUri failed');
       libQ.reject(new Error());
     });
+};
+
+ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
+  var self = this;
+  var defer = libQ.defer();
+
+  var streamUrl = 'http://www.bbc.co.uk/podcasts/' + uri;
+  self.logger.info("ControllerPersonalRadio::getPodcastBBC:"+ streamUrl);
+
+  unirest
+  .get(streamUrl)
+  .end(function (response) {
+    if (response.status === 200) {
+      htmlToJson.parse(response.body, ['a[data-istats-package]',
+        {
+          'uri': function ($a) {
+            return $a.attr('href');
+          },
+          'title': function ($a) {
+            return $a.find('h3[class]').text().trim();
+          },
+          'img': function ($a) {
+            return $a.find('img[aria-hidden]').attr('src');
+          }
+        }
+      ])
+      .done(function (parseResult) {
+        self.bbcNavigation.navigation.prev.uri = 'webbbc';
+        var response = self.bbcNavigation;
+        response.navigation.lists[0].items = [];
+        for (var item in parseResult) {
+          var channel = {
+            service: self.serviceName,
+            type: 'mywebradio',
+            title: item.title,
+            artist: '',
+            album: '',
+            icon: 'fa fa-music',
+            uri: 'kradio/bbc/podcast/' + uri + '/' + item.uri.match(
+                /programmes\/(.*)\/episodes/)[1]
+          };
+          response.navigation.lists[0].items.push(channel);
+        }
+        defer.resolve(response);
+      });
+
+    } else {
+      defer.resolve(null);
+    }
+  });
+
+  return defer.promise;
+};
+
+ControllerPersonalRadio.prototype.getPodcastArticle = function(uri) {
+  var self = this;
+  var defer = libQ.defer();
+
+  self.logger.info("ControllerPersonalRadio::getPodcastArticle:"+ uri);
+  var rssParser = new RssParser({
+    customFields: {
+      channel: ['image'],
+      item: [
+        'enclosure',
+        ['ppg:enclosureLegacy', 'enclosureLegacy'],
+        ['ppg:enclosureSecure', 'enclosureSecure']
+      ]
+    }
+  });
+
+  rssParser.parseURL('http://podcasts.files.bbci.co.uk/' + uri + '.rss',
+    function (err, feed) {
+      var response = self.bbcNavigation;
+      self.bbcNavigation.navigation.prev.uri = 'webbbc';
+      response.navigation.lists[0].items = [];
+
+      feed.items.forEach(function (entry) {
+        //console.log(entry.title + ':' + entry.enclosureSecure.$.url);
+        var channel = {
+          service: self.serviceName,
+          type: 'mywebradio',
+          title: entry.title,
+          artist: '',
+          album: '',
+          icon: 'fa fa-music',
+          uri: 'webbbc/' + uri,
+          url: entry.enclosureSecure.$.url
+        };
+        response.navigation.lists[0].items.push(channel);
+      });
+      defer.resolve(response);
+    });
+
+  return defer.promise;
 };
 
 ControllerPersonalRadio.prototype.getRootContent = function() {
@@ -429,6 +450,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var query;
   var station;
 
+  self.logger.info("ControllerPersonalRadio::explodeUri:"+uri);
   station = uris[0].substring(3);
   response = {
       service: self.serviceName,
