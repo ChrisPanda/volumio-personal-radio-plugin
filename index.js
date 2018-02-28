@@ -167,7 +167,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
   var response;
 
   self.logger.info("ControllerPersonalRadio::handleBrowseUri:"+curUri);
-  var uriParts = curUri.split('/');
+
   if (curUri.startsWith('kradio')) {
     if (curUri === 'kradio') {
       response = self.getRootContent();
@@ -185,14 +185,16 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
       response = self.getRadioContent('linn');
     }
     else if (curUri.startsWith('kradio/bbc')) {
+      var uriParts = curUri.split('_');
+
       if (curUri === 'kradio/bbc')
         response = self.getRadioContent('bbc');
-      else if (curUri === 'kradio/bbc/podcast/' + uriParts[3])
-        self.getPodcastBBC(uriParts[3]).then(function(response) {
+      else if (curUri === 'kradio/bbc_' + uriParts[1])
+        self.getPodcastBBC(uriParts[1]).then(function(response) {
           return response;
         });
-      else if (curUri === 'kradio/bbc/podcast/'+uriParts[3]+'/'+ uriParts[4])
-        self.getPodcastArticle(uriParts[4]).then(function(response) {
+      else if (curUri === 'kradio/bbc_'+uriParts[1]+'_'+ uriParts[2])
+        self.getPodcastArticle(uriParts[2]).then(function(response) {
           return response;
         });
     }
@@ -244,7 +246,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
             artist: '',
             album: '',
             icon: 'fa fa-music',
-            uri: 'kradio/bbc/podcast/' + uri + '/' + item.uri.match(
+            uri: 'kradio/bbc_' + uri + '_' + item.uri.match(
                 /programmes\/(.*)\/episodes/)[1]
           };
           response.navigation.lists[0].items.push(channel);
