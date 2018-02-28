@@ -7,6 +7,8 @@ var fs = require('fs-extra');
 var config = require('v-conf');
 var unirest = require('unirest');
 var crypto = require('crypto');
+var htmlToJson = require('html-to-json');
+var RssParser = require('rss-parser');
 
 module.exports = ControllerPersonalRadio;
 
@@ -164,7 +166,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
   var self = this;
   var response;
 
-  //self.logger.info("ControllerPersonalRadio::handleBrowseUri");
+  self.logger.info("ControllerPersonalRadio::handleBrowseUri:"+curUri);
   if (curUri.startsWith('kradio')) {
     if (curUri === 'kradio') {
       response = self.getRootContent();
@@ -180,6 +182,92 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
     }
     else if (curUri === 'kradio/linn') {
       response = self.getRadioContent('linn');
+    }
+    else if (curUri === 'kradio/bbc') {
+      response = self.getRadioContent('bbc');
+    }
+    else if (curUri === 'kradio/bbc/podcast') {
+      var uris = curUri.split("/");
+      var streamUrl = 'http://www.bbc.co.uk/podcasts/' + uris[3];
+      self.logger.info("ControllerPersonalRadio::handleBrowseUri:BBC::"+streamUrl);
+
+      unirest
+      .get(streamUrl)
+      .end(function (response) {
+        if (response.status === 200) {
+          htmlToJson.parse(response.body, ['a[data-istats-package]',
+            {
+              'uri': function ($a) {
+                return $a.attr('href');
+              },
+              'title': function ($a) {
+                return $a.find('h3[class]').text().trim();
+              },
+              'img': function ($a) {
+                return $a.find('img[aria-hidden]').attr('src');
+              }
+            }
+          ])
+          .done(function (parseResult) {
+            self.bbcNavigation.navigation.prev.uri = 'webbbc';
+            var response = self.bbcNavigation;
+            response.navigation.lists[0].items = [];
+            for (var item in parseResult) {
+              var channel = {
+                service: self.serviceName,
+                type: 'mywebradio',
+                title: item.title,
+                artist: '',
+                album: '',
+                icon: 'fa fa-music',
+                uri: 'bbc/' + parseResult.indexOf(item) + '/' + item.uri.match(
+                    /programmes\/(.*)\/episodes/)[1]
+              };
+              response.navigation.lists[0].items.push(channel);
+            }
+            defer.resolve(response);
+          });
+
+        } else {
+          defer.resolve(null);
+        }
+      });
+    }
+    else if (curUri === 'kradio/bbc/podcast/webbbc') {
+      var uris = curUri.split("/");
+      var rssParser = new RssParser({
+        customFields: {
+          channel: ['image'],
+          item: [
+            'enclosure',
+            ['ppg:enclosureLegacy', 'enclosureLegacy'],
+            ['ppg:enclosureSecure', 'enclosureSecure']
+          ]
+        }
+      });
+
+      rssParser.parseURL('http://podcasts.files.bbci.co.uk/' + uris[4] + '.rss', function(err, feed) {
+        feed.items.forEach(function(entry) {
+          console.log(entry.title + ':' + entry.enclosureSecure.$.url);
+
+          self.bbcNavigation.navigation.prev.uri = 'webbbc';
+          var response = self.bbcNavigation;
+          response.navigation.lists[0].items = [];
+
+          var channel = {
+            service: self.serviceName,
+            type: 'mywebradio',
+            title: entry.title,
+            artist: '',
+            album: '',
+            icon: 'fa fa-music',
+            uri: 'webbbc/' + uris[4],
+            url: entry.enclosureSecure.$.url
+          };
+          response.navigation.lists[0].items.push(channel);
+        })
+      });
+
     }
     else {
       response = libQ.reject();
@@ -232,6 +320,8 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
       break;
     case 'linn':
       radioStation = self.radioStations.linn;
+    case 'bbc':
+      radioStation = self.radioStations.bbc;
   }
 
   response = self.radioNavigation;
@@ -440,6 +530,10 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       defer.resolve(response);
       break;
 
+    case 'bbc':
+
+      break;
+
     default:
       defer.resolve();
   }
@@ -507,6 +601,7 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.radioStations = radioResource.stations;
   self.rootNavigation = JSON.parse(JSON.stringify(baseNavigation));
   self.radioNavigation = JSON.parse(JSON.stringify(baseNavigation));
+  self.bbcNavigation = JSON.parse(JSON.stringify(baseNavigation));
   self.rootNavigation.navigation.prev.uri = '/';
 
   // i18n resource localization
