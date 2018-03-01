@@ -167,7 +167,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
   var defer = libQ.defer();
   var response;
 
-  self.logger.info("ControllerPersonalRadio::handleBrowseUri:"+curUri);
+  //self.logger.info("ControllerPersonalRadio::handleBrowseUri:"+curUri);
 
   if (curUri.startsWith('kradio')) {
     if (curUri === 'kradio') {
@@ -213,7 +213,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
   var defer = libQ.defer();
 
   var streamUrl = 'http://www.bbc.co.uk/podcasts/' + uri;
-  self.logger.info("ControllerPersonalRadio::getPodcastBBC:"+ streamUrl);
+  self.logger.info("ControllerPersonalRadio::podcast:"+ streamUrl);
 
   unirest
   .get(streamUrl)
@@ -263,7 +263,7 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
   var self = this;
   var defer = libQ.defer();
 
-  self.logger.info("ControllerPersonalRadio::getPodcastArticle:"+ uri);
+  self.logger.info("ControllerPersonalRadio::podcast:post:"+ uri);
   var rssParser = new RssParser({
     customFields: {
       channel: ['image'],
@@ -283,7 +283,7 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
       response.navigation.lists[0].items = [];
 
       self.podcastImage = feed.itunes.image;
-      self.logger.info("ControllerPersonalRadio::PODCAST:IMAGE:"+self.podcastImage);
+      //self.logger.info("ControllerPersonalRadio::PODCAST:IMAGE:"+self.podcastImage);
 
       feed.items.forEach(function (entry) {
         //console.log(entry.title + ':' + entry.enclosureSecure.$.url);
@@ -296,7 +296,7 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
         };
         response.navigation.lists[0].items.push(channel);
       });
-      self.logger.info("ControllerPersonalRadio::PodcastArticle:RESULT:"+ JSON.stringify(response));
+      //self.logger.info("ControllerPersonalRadio::PodcastArticle:RESULT:"+ JSON.stringify(response));
       defer.resolve(response);
     });
 
