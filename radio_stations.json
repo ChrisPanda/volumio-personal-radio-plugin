@@ -144,27 +144,31 @@
       },
       {
         "title": "BBC Radio4 Podcast",
+        "uri": "kradio/bbc/radio4"
+      },
+      {
+        "title": "BBC Radio4 Extra Podcast",
         "uri": "kradio/bbc/radio4extra"
       },
       {
         "title": "BBC Radio5 live Podcast",
-        "uri": "kradio/bbc/bbc_5live"
+        "uri": "kradio/bbc/5live"
       },
       {
         "title": "BBC Radio5 live sports extra Podcast",
-        "uri": "kradio/bbc/bbc_5livesportsextra"
+        "uri": "kradio/bbc/5livesportsextra"
       },
       {
         "title": "BBC Radio6 Music Podcast",
-        "uri": "kradio/bbc/bbc_6music"
+        "uri": "kradio/bbc/6music"
       },
       {
         "title": "BBC Asian Network",
-        "uri": "kradio/bbc/bbc_asiannetwork"
+        "uri": "kradio/bbc/asiannetwork"
       },
       {
         "title": "BBC World Service",
-        "uri": "kradio/bbc/bbc_worldserviceradio"
+        "uri": "kradio/bbc/worldserviceradio"
       }
     ]
   },

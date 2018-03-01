@@ -164,51 +164,48 @@ ControllerPersonalRadio.prototype.addToBrowseSources = function () {
 
 ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
   var self = this;
+  var defer = libQ.defer();
   var response;
 
   self.logger.info("ControllerPersonalRadio::handleBrowseUri:"+curUri);
 
   if (curUri.startsWith('kradio')) {
     if (curUri === 'kradio') {
-      response = self.getRootContent();
+      defer.resolve(self.getRootContent());
     }
     else if (curUri === 'kradio/kbs') {
-      response = self.getRadioContent('kbs');
+      defer.resolve(self.getRadioContent('kbs'));
     }
     else if (curUri === 'kradio/sbs') {
-      response = self.getRadioContent('sbs');
+      defer.resolve(self.getRadioContent('sbs'));
     }
     else if (curUri === 'kradio/mbc') {
-      response = self.getRadioContent('mbc');
+      defer.resolve(self.getRadioContent('mbc'));
     }
     else if (curUri === 'kradio/linn') {
-      response = self.getRadioContent('linn');
+      defer.resolve(self.getRadioContent('linn'));
     }
     else if (curUri === 'kradio/bbc') {
-      response = self.getRadioContent('bbc');
+      defer.resolve(self.getRadioContent('bbc'));
     }
     else {
       var uriParts = curUri.split('/');
 
       if ((uriParts.length === 3) && (uriParts[1] === 'bbc'))
-        self.getPodcastBBC(uriParts[2]).then(function (response) {
-          return response;
+        self.getPodcastBBC(uriParts[2]).then(function (result) {
+          defer.resolve(result);
         });
       else if ((uriParts.length === 4) && (uriParts[1] === 'bbc'))
-        self.getPodcastArticle(uriParts[3]).then(function (response) {
-          return response;
+        self.getPodcastArticle(uriParts[2], uriParts[3]).then(function (result) {
+          defer.resolve(result);
         });
       else {
-        response = libQ.reject();
+        return defer.reject(new Error());
       }
     }
   }
 
-  return response
-    .fail(function (e) {
-      self.logger.info('[' + Date.now() + '] ' + 'ControllerPersonalRadio::handleBrowseUri failed');
-      libQ.reject(new Error());
-    });
+  return defer.promise;
 };
 
 ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
@@ -236,23 +233,20 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
         }
       ])
       .done(function (parseResult) {
-        self.bbcNavigation.navigation.prev.uri = 'webbbc';
+        self.bbcNavigation.navigation.prev.uri = 'kradio/bbc/';
         var response = self.bbcNavigation;
         response.navigation.lists[0].items = [];
         for (var item in parseResult) {
           var channel = {
             service: self.serviceName,
             type: 'folder',
-            title: item.title,
-            artist: '',
-            album: '',
-            icon: 'fa fa-music',
-            uri: 'kradio/bbc/' + uri + '/' + item.uri.match(
-                /programmes\/(.*)\/episodes/)[1]
+            title: parseResult[item].title,
+            icon: 'fa fa-folder-open-o',
+            uri: 'kradio/bbc/' + uri + '/' + parseResult[item].uri.match(/programmes\/(.*)\/episodes/)[1]
           };
           response.navigation.lists[0].items.push(channel);
         }
-        self.logger.info("ControllerPersonalRadio::getPodcastBBC:RESULT:"+ JSON.stringify(response));
+        //self.logger.info("ControllerPersonalRadio::getPodcastBBC:RESULT:"+ JSON.stringify(response));
 
         defer.resolve(response);
       });
@@ -265,7 +259,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
   return defer.promise;
 };
 
-ControllerPersonalRadio.prototype.getPodcastArticle = function(uri) {
+ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
   var self = this;
   var defer = libQ.defer();
 
@@ -283,8 +277,9 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(uri) {
 
   rssParser.parseURL('http://podcasts.files.bbci.co.uk/' + uri + '.rss',
     function (err, feed) {
+
+      self.bbcNavigation.navigation.prev.uri = 'kradio/bbc/' + channel;
       var response = self.bbcNavigation;
-      self.bbcNavigation.navigation.prev.uri = 'webbbc';
       response.navigation.lists[0].items = [];
 
       feed.items.forEach(function (entry) {
@@ -293,14 +288,12 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(uri) {
           service: self.serviceName,
           type: 'mywebradio',
           title: entry.title,
-          artist: '',
-          album: '',
           icon: 'fa fa-music',
-          uri: 'webbbc/' + uri,
-          url: entry.enclosureSecure.$.url
+          uri: 'webbbc/0/' + entry.enclosureSecure.$.url
         };
         response.navigation.lists[0].items.push(channel);
       });
+      self.logger.info("ControllerPersonalRadio::PodcastArticle:RESULT:"+ JSON.stringify(response));
       defer.resolve(response);
     });
 
@@ -562,8 +555,9 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       defer.resolve(response);
       break;
 
-    case 'bbc':
-
+    case 'webbbc':
+      response["uri"] = uris[2];
+      defer.resolve(response);
       break;
 
     default:
