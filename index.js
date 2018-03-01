@@ -187,20 +187,20 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
     else if (curUri === 'kradio/bbc') {
       response = self.getRadioContent('bbc');
     }
-  }
-  else {
-    var uriParts = curUri.split(':');
-
-    if ((uriParts.length === 2) && (uriParts[0] === 'bbc'))
-      self.getPodcastBBC(uriParts[1]).then(function (response) {
-        return response;
-      });
-    else if ((uriParts.length === 3) && (uriParts[0] === 'bbc'))
-      self.getPodcastArticle(uriParts[2]).then(function (response) {
-        return response;
-      });
     else {
-      response = libQ.reject();
+      var uriParts = curUri.split('/');
+
+      if ((uriParts.length === 3) && (uriParts[1] === 'bbc'))
+        self.getPodcastBBC(uriParts[2]).then(function (response) {
+          return response;
+        });
+      else if ((uriParts.length === 4) && (uriParts[1] === 'bbc'))
+        self.getPodcastArticle(uriParts[3]).then(function (response) {
+          return response;
+        });
+      else {
+        response = libQ.reject();
+      }
     }
   }
 
@@ -247,11 +247,13 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
             artist: '',
             album: '',
             icon: 'fa fa-music',
-            uri: 'bbc:' + uri + ':' + item.uri.match(
+            uri: 'kradio/bbc/' + uri + '/' + item.uri.match(
                 /programmes\/(.*)\/episodes/)[1]
           };
           response.navigation.lists[0].items.push(channel);
         }
+        self.logger.info("ControllerPersonalRadio::getPodcastBBC:RESULT:"+ JSON.stringify(response));
+
         defer.resolve(response);
       });
 
@@ -354,7 +356,6 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
     var channel = {
       service: self.serviceName,
       title: radioStation[i].title,
-      icon: 'fa fa-music',
       uri: radioStation[i].uri
     };
     if (station === 'bbc') {
@@ -367,6 +368,7 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
     }
     response.navigation.lists[0].items.push(channel);
   }
+
   defer.resolve(response);
 
   return defer.promise;
