@@ -233,7 +233,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
         }
       ])
       .done(function (parseResult) {
-        self.bbcNavigation.navigation.prev.uri = 'kradio/bbc/';
+        self.bbcNavigation.navigation.prev.uri = 'kradio/bbc';
         var response = self.bbcNavigation;
         response.navigation.lists[0].items = [];
         for (var item in parseResult) {
@@ -281,6 +281,9 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
       self.bbcNavigation.navigation.prev.uri = 'kradio/bbc/' + channel;
       var response = self.bbcNavigation;
       response.navigation.lists[0].items = [];
+
+      self.podcastImage = feed.itunes.image;
+      self.logger.info("ControllerPersonalRadio::PODCAST:IMAGE:"+self.podcastImage);
 
       feed.items.forEach(function (entry) {
         //console.log(entry.title + ':' + entry.enclosureSecure.$.url);
@@ -339,6 +342,7 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
       break;
     case 'linn':
       radioStation = self.radioStations.linn;
+      break;
     case 'bbc':
       radioStation = self.radioStations.bbc;
   }
@@ -447,7 +451,7 @@ ControllerPersonalRadio.prototype.resume = function() {
 ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var self = this;
   var defer = libQ.defer();
-  var uris = uri.split("/");
+  var uris = uri.split("/", 2);
   var channel = parseInt(uris[1]);
   var response;
   var query;
@@ -552,11 +556,14 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
     case 'weblinn':
       response["uri"] = self.radioStations.linn[channel].url;
       response["name"] = self.radioStations.linn[channel].title;
+
       defer.resolve(response);
       break;
 
     case 'webbbc':
-      response["uri"] = uris[2];
+      response["uri"] = uri.match(/webbbc\/.\/(.*)/)[1];
+      response["name"] = 'BBC podcast';
+      response["albumart"] = self.podcastImage;
       defer.resolve(response);
       break;
 
