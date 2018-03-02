@@ -408,7 +408,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         switch (track.radioType) {
           case 'kbs':
           case 'sbs':
-          case 'mbc':;
+          case 'mbc':
             return self.mpdPlugin.getState().then(function (state) {
                 return self.commandRouter.stateMachine.syncState(state, self.serviceName);
             });
