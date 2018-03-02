@@ -128,43 +128,53 @@
     "bbc": [
       {
         "title": "BBC Radio1 Podcast",
-        "uri": "kradio/bbc/radio1"
+        "uri": "kradio/bbc/radio1",
+        "albumart": "bbc_radio_1.png"
       },
       {
         "title": "BBC Radio2 Podcast",
-        "uri": "kradio/bbc/radio2"
+        "uri": "kradio/bbc/radio2",
+        "albumart": "bbc_radio_2.png"
       },
       {
         "title": "BBC Radio3 Podcast",
-        "uri": "kradio/bbc/radio3"
+        "uri": "kradio/bbc/radio3",
+        "albumart": "bbc_radio_3.png"
       },
       {
         "title": "BBC Radio4 Podcast",
-        "uri": "kradio/bbc/radio4"
+        "uri": "kradio/bbc/radio4",
+        "albumart": "bbc_radio_4.png"
       },
       {
         "title": "BBC Radio4 Extra Podcast",
-        "uri": "kradio/bbc/radio4extra"
+        "uri": "kradio/bbc/radio4extra",
+        "albumart": "bbc_radio4_extra.png"
       },
       {
         "title": "BBC Radio5 live Podcast",
-        "uri": "kradio/bbc/5live"
+        "uri": "kradio/bbc/5live",
+        "albumart": "bbc_radio_5_live.png"
       },
       {
         "title": "BBC Radio5 live sports extra Podcast",
-        "uri": "kradio/bbc/5livesportsextra"
+        "uri": "kradio/bbc/5livesportsextra",
+        "albumart": "bbc_radio_5_live_sports_extra.png"
       },
       {
         "title": "BBC Radio6 Music Podcast",
-        "uri": "kradio/bbc/6music"
+        "uri": "kradio/bbc/6music",
+        "albumart": "bbc_radio_6_music.png"
       },
       {
         "title": "BBC Asian Network",
-        "uri": "kradio/bbc/asiannetwork"
+        "uri": "kradio/bbc/asiannetwork",
+        "albumart": "bbc_asian_network.png"
       },
       {
         "title": "BBC World Service",
-        "uri": "kradio/bbc/worldserviceradio"
+        "uri": "kradio/bbc/worldserviceradio",
+        "albumart": "bbc_world_service.png"
       }
     ]
   },

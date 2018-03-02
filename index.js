@@ -159,7 +159,7 @@ ControllerPersonalRadio.prototype.addToBrowseSources = function () {
     uri: 'kradio',
     plugin_type: 'music_service',
     plugin_name: "personal_radio",
-    albumart: '/albumart?sourceicon=music_service/personal_radio/personal_radio.svg'
+    albumart: '/albumart?sourceicon=music_service/personal_radio/logos/personal_radio.svg'
   });
 };
 
@@ -251,7 +251,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
             type: 'folder',
             title: parseResult[item].title,
             icon: 'fa fa-folder-open-o',
-            albumart: parseResult[item].img,
+            albumart: 'http:' + parseResult[item].img,
             uri: 'kradio/bbc/' + uri + '/' + parseResult[item].uri.match(/programmes\/(.*)\/episodes/)[1]
           };
           response.navigation.lists[0].items.push(channel);
@@ -373,7 +373,8 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
     };
     if (station === 'bbc') {
       channel["type"] = 'folder';
-      channel["icon"] = 'fa fa-folder-open-o';
+      //channel["icon"] = 'fa fa-folder-open-o';
+      channel["albumart"] = '/albumart?sourceicon=music_service/personal_radio/logos/'+ radioStation[i].albumart +'.png'
     }
     else {
       channel["type"] = 'mywebradio';
@@ -496,7 +497,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       type: 'track',
       trackType: self.getRadioI18nString('PLUGIN_NAME'),
       radioType: station,
-      albumart: '/albumart?sourceicon=music_service/personal_radio/'+station+'.svg'
+      albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+station+'.svg'
   };
 
   switch (uris[0]) {
@@ -732,6 +733,8 @@ ControllerPersonalRadio.prototype.decodeStreamUrl =
 };
 
 ControllerPersonalRadio.prototype.errorToast = function (station, msg) {
+  var self=this;
+
   var errorMessage = self.getRadioI18nString(msg);
   errorMessage.replace('{0}', station.toUpperCase());
   self.commandRouter.pushToastMessage('error',
