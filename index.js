@@ -243,7 +243,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
       .done(function (parseResult) {
         self.bbcNavigation.navigation.prev.uri = 'kradio/bbc';
         var response = self.bbcNavigation;
-        response.title = self.getRadioI18nString('TITLE_' + uri.toUpperCase());
+        response.navigation.lists[0].title = self.getRadioI18nString('TITLE_' + uri.toUpperCase());
         response.navigation.lists[0].items = [];
         for (var item in parseResult) {
           var channel = {
@@ -296,7 +296,7 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
 
       self.bbcNavigation.navigation.prev.uri = 'kradio/bbc/' + channel;
       var response = self.bbcNavigation;
-      response.title = self.getRadioI18nString('TITLE_' + channel.toUpperCase()) + '/' + feed.title;
+      response.navigation.lists[0].title = self.getRadioI18nString('TITLE_' + channel.toUpperCase()) + '/' + feed.title;
       response.navigation.lists[0].items = [];
 
       self.podcastImage = feed.itunes.image;
@@ -326,7 +326,7 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
   var defer = libQ.defer();
 
   response = self.rootNavigation;
-  response.title = self.getRadioI18nString('PLUGIN_NAME');
+  response.navigation.lists[0].title = self.getRadioI18nString('PLUGIN_NAME');
   response.navigation.lists[0].items = [];
   for (var key in self.rootStations) {
       var radio = {
@@ -367,7 +367,7 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
   }
 
   response = self.radioNavigation;
-  response.title = self.getRadioI18nString('TITLE_' + station.toUpperCase());
+  response.navigation.lists[0].title = self.getRadioI18nString('TITLE_' + station.toUpperCase());
   response.navigation.lists[0].items = [];
   for (var i in radioStation) {
     var channel = {
