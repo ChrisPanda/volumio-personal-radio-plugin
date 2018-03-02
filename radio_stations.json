@@ -134,7 +134,7 @@
       {
         "title": "BBC Radio1 Podcast",
         "uri": "kradio/bbc/radio1",
-        "albumart": "bbc_radio_1.png"
+        "albumart": "bbc_radio_1.jpg"
       },
       {
         "title": "BBC Radio2 Podcast",
@@ -154,7 +154,7 @@
       {
         "title": "BBC Radio4 Extra Podcast",
         "uri": "kradio/bbc/radio4extra",
-        "albumart": "bbc_radio4_extra.png"
+        "albumart": "bbc_radio_4_extra.png"
       },
       {
         "title": "BBC Radio5 live Podcast",
