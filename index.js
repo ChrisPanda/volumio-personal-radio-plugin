@@ -213,15 +213,15 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
   var self = this;
   var defer = libQ.defer();
 
-  var streamUrl = 'http://www.bbc.co.uk/podcasts/' + uri;
-  self.logger.info("ControllerPersonalRadio::podcast:"+ streamUrl);
+  var streamUrl = self.bbcPodcastRadio + uri;
+  //self.logger.info("ControllerPersonalRadio::podcast:"+ streamUrl);
 
-  var waitMsg = self.getRadioI18nString('WAIT_BBC_PODCAST_LIST');
-  waitMsg.replace('{0}', uri);
+  var waitMessage = self.getRadioI18nString('WAIT_BBC_PODCAST_LIST');
+  waitMessage = waitMessage.replace('{0}', uri);
   self.commandRouter.pushToastMessage(
       'info',
       self.getRadioI18nString('PLUGIN_NAME'),
-      waitMsg
+      waitMessage
   );
 
   unirest
@@ -291,7 +291,7 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
       self.getRadioI18nString('WAIT_BBC_PODCAST_ITEMS')
   );
 
-  rssParser.parseURL('http://podcasts.files.bbci.co.uk/' + uri + '.rss',
+  rssParser.parseURL(self.bbcPodcastRSS + uri + '.rss',
     function (err, feed) {
 
       self.bbcNavigation.navigation.prev.uri = 'kradio/bbc/' + channel;
@@ -699,6 +699,10 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
     self.baseMbcStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.mbc);
     self.baseSbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.sbs);
   });
+
+  // BBC Radio Podcast
+  self.bbcPodcastRadio = radioResource.bbcPodcast.radio;
+  self.bbcPodcastRSS = radioResource.bbcPodcast.rss;
 };
 
 ControllerPersonalRadio.prototype.loadRadioI18nStrings = function () {
@@ -737,7 +741,7 @@ ControllerPersonalRadio.prototype.errorToast = function (station, msg) {
   var self=this;
 
   var errorMessage = self.getRadioI18nString(msg);
-  errorMessage.replace('{0}', station.toUpperCase());
+  errorMessage = errorMessage.replace('{0}', station.toUpperCase());
   self.commandRouter.pushToastMessage('error',
       self.getRadioI18nString('PLUGIN_NAME'), errorMessage);
 };
