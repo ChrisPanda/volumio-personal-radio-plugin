@@ -250,7 +250,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
             service: self.serviceName,
             type: 'folder',
             title: parseResult[item].title,
-            icon: 'fa fa-folder-open-o',
+            //icon: 'fa fa-folder-open-o',
             albumart: 'http:' + parseResult[item].img,
             uri: 'kradio/bbc/' + uri + '/' + parseResult[item].uri.match(/programmes\/(.*)\/episodes/)[1]
           };
@@ -331,8 +331,9 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
         service: self.serviceName,
         type: 'folder',
         title: self.rootStations[key].title,
-        icon: 'fa fa-folder-open-o',
-        uri: self.rootStations[key].uri
+        //icon: 'fa fa-folder-open-o',
+        uri: self.rootStations[key].uri,
+        albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+ self.rootStations[key].albumart
       };
       response.navigation.lists[0].items.push(radio);
   }
@@ -374,7 +375,7 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
     if (station === 'bbc') {
       channel["type"] = 'folder';
       //channel["icon"] = 'fa fa-folder-open-o';
-      channel["albumart"] = '/albumart?sourceicon=music_service/personal_radio/logos/'+ radioStation[i].albumart +'.png'
+      channel["albumart"] = '/albumart?sourceicon=music_service/personal_radio/logos/'+ radioStation[i].albumart
     }
     else {
       channel["type"] = 'mywebradio';

@@ -19,23 +19,28 @@
   "rootStations": {
     "kbs": {
       "title": "Korean KBS",
-      "uri": "kradio/kbs"
+      "uri": "kradio/kbs",
+      "albumart": "kbs.svg"
     },
     "sbs": {
       "title": "Korean SBS",
-      "uri": "kradio/sbs"
+      "uri": "kradio/sbs",
+      "albumart": "sbs.svg"
     },
     "mbc": {
       "title": "Korean MBC",
-      "uri": "kradio/mbc"
+      "uri": "kradio/mbc",
+      "albumart": "mbc.svg"
     },
     "linn": {
       "title": "Linn",
-      "uri": "kradio/linn"
+      "uri": "kradio/linn",
+      "albumart": "linn.svg"
     },
     "bbc": {
       "title": "BBC Podcasts",
-      "uri": "kradio/bbc"
+      "uri": "kradio/bbc",
+      "albumart": "bbc.svg"
     }
   },
 
