@@ -7,6 +7,8 @@
   "ERROR_SECRET_KEY_SERVER": "There is a problem in Korean radio secret key server.",
   "ERROR_SECRET_KEY": "Plugin can't get secretKey for Korean Radio URL",
   "STOP_RADIO_STATION": "Please stop running radio station(SBS, MBC) and play again at MAIN radio menu to use changed radio protocol",
+  "WAIT_BBC_PODCAST_LIST": "Please wait BBC {0} radio podcast list",
+  "WAIT_BBC_PODCAST_ITEMS": "Please wait BBC radio podcast items",
   "KBS": "KBS (Korean)",
   "MBC": "MBC (Korean)",
   "SBS": "SBS (Korean)",

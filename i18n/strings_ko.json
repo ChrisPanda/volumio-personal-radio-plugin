@@ -7,6 +7,8 @@
   "ERROR_SECRET_KEY_SERVER": "한국 라디오 방송 암호화 키 서버에 문제가 있습니다.",
   "ERROR_SECRET_KEY": "플러그인이 한국 라디오 URL을 위한 암호키를 가져올 수 없습니다.",
   "STOP_RADIO_STATION": "라디오 전송방식 변경을 위해서는 청취중인 SBS, MBC 라디오를 반드시 메인 메뉴에서 다시 실행하세요.",
+  "WAIT_BBC_PODCAST_LIST": "BBC {0} 라디오 팟캐스트 목록 조회중입니다.",
+  "WAIT_BBC_PODCAST_ITEMS": "BBC 라디오 팟캐스트 아이템 조회중입니다.",
   "KBS": "KBS",
   "MBC": "MBC",
   "SBS": "SBS",

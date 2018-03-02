@@ -216,6 +216,14 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
   var streamUrl = 'http://www.bbc.co.uk/podcasts/' + uri;
   self.logger.info("ControllerPersonalRadio::podcast:"+ streamUrl);
 
+  var waitMsg = self.getRadioI18nString('WAIT_BBC_PODCAST_LIST');
+  waitMsg.replace('{0}', uri);
+  self.commandRouter.pushToastMessage(
+      'info',
+      self.getRadioI18nString('PLUGIN_NAME'),
+      waitMsg
+  );
+
   unirest
   .get(streamUrl)
   .end(function (response) {
@@ -243,6 +251,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
             type: 'folder',
             title: parseResult[item].title,
             icon: 'fa fa-folder-open-o',
+            albumart: parseResult[item].img,
             uri: 'kradio/bbc/' + uri + '/' + parseResult[item].uri.match(/programmes\/(.*)\/episodes/)[1]
           };
           response.navigation.lists[0].items.push(channel);
@@ -275,6 +284,12 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
       ]
     }
   });
+
+  self.commandRouter.pushToastMessage(
+      'info',
+      self.getRadioI18nString('PLUGIN_NAME'),
+      self.getRadioI18nString('WAIT_BBC_PODCAST_ITEMS')
+  );
 
   rssParser.parseURL('http://podcasts.files.bbci.co.uk/' + uri + '.rss',
     function (err, feed) {
