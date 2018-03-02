@@ -33,7 +33,6 @@ ControllerPersonalRadio.prototype.onVolumioStart = function()
   self.getConf(self.configFile);
   self.sbsProtocol =  self.config.get('sbsProtocol');
   self.mbcProtocol =  self.config.get('mbcProtocol');
-  self.radioMode = true;
 
   return libQ.resolve();
 };
@@ -409,14 +408,12 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         switch (track.radioType) {
           case 'kbs':
           case 'sbs':
-          case 'mbc':
-            self.radioMode = true;
+          case 'mbc':;
             return self.mpdPlugin.getState().then(function (state) {
                 return self.commandRouter.stateMachine.syncState(state, self.serviceName);
             });
             break;
           default:
-            self.radioMode = false;
             self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
             return libQ.resolve();
         }
@@ -441,45 +438,35 @@ ControllerPersonalRadio.prototype.stop = function() {
       self.getRadioI18nString('PLUGIN_NAME'),
       self.getRadioI18nString('STOP_RADIO_CHANNEL')
   );
-  if (self.radioMode === true) {
-    return self.mpdPlugin.stop().then(function () {
-      return self.mpdPlugin.getState().then(function (state) {
-        return self.commandRouter.stateMachine.syncState(state,
-            self.serviceName);
-      });
+
+  return self.mpdPlugin.stop().then(function () {
+    return self.mpdPlugin.getState().then(function (state) {
+      return self.commandRouter.stateMachine.syncState(state,
+          self.serviceName);
     });
-  }
-  else
-    return self.mpdPlugin.sendMpdCommand('stop',[]);
+  });
 };
 
 ControllerPersonalRadio.prototype.pause = function() {
   var self = this;
 
-  if (self.radioMode === true) {
-    return self.mpdPlugin.pause().then(function () {
-      return self.mpdPlugin.getState().then(function (state) {
-        return self.commandRouter.stateMachine.syncState(state,
-            self.serviceName);
-      });
+  return self.mpdPlugin.pause().then(function () {
+    return self.mpdPlugin.getState().then(function (state) {
+      return self.commandRouter.stateMachine.syncState(state,
+          self.serviceName);
     });
-  }
-  else
-    return self.mpdPlugin.sendMpdCommand('pause',[]);
+  });
 };
 
 ControllerPersonalRadio.prototype.resume = function() {
   var self = this;
-  if (self.radioMode === true) {
-    return self.mpdPlugin.resume().then(function () {
-      return self.mpdPlugin.getState().then(function (state) {
-        return self.commandRouter.stateMachine.syncState(state,
-            self.serviceName);
-      });
+
+  return self.mpdPlugin.resume().then(function () {
+    return self.mpdPlugin.getState().then(function (state) {
+      return self.commandRouter.stateMachine.syncState(state,
+          self.serviceName);
     });
-  }
-  else
-    return self.mpdPlugin.sendMpdCommand('play',[]);
+  });
 };
 
 ControllerPersonalRadio.prototype.explodeUri = function (uri) {
