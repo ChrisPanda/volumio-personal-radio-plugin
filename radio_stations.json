@@ -162,11 +162,6 @@
         "albumart": "bbc_radio_5_live.png"
       },
       {
-        "title": "BBC Radio5 live sports extra Podcast",
-        "uri": "kradio/bbc/5livesportsextra",
-        "albumart": "bbc_radio_5_live_sports_extra.png"
-      },
-      {
         "title": "BBC Radio6 Music Podcast",
         "uri": "kradio/bbc/6music",
         "albumart": "bbc_radio_6_music.png"
