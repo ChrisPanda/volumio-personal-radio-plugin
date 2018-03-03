@@ -436,6 +436,7 @@ ControllerPersonalRadio.prototype.seek = function (position) {
 
 ControllerPersonalRadio.prototype.stop = function() {
 	var self = this;
+	var serviceName;
 
   self.commandRouter.pushToastMessage(
       'info',
@@ -443,32 +444,56 @@ ControllerPersonalRadio.prototype.stop = function() {
       self.getRadioI18nString('STOP_RADIO_CHANNEL')
   );
 
+  self.logger.info("#######:STOP:CONSUME:"+self.commandRouter.stateMachine.isConsume);
+  self.logger.info("#######:STOP:SERVICE:"+self.commandRouter.stateMachine.consumeUpdateService);
+  if (self.commandRouter.stateMachine.consumeUpdateService === 'mpd')
+    serviceName = 'mpd';
+  else
+    serviceName = self.serviceName;
+
   return self.mpdPlugin.stop().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
-      return self.commandRouter.stateMachine.syncState(state,
-          self.serviceName);
+      return self.commandRouter.stateMachine.syncState(state, serviceName);
     });
   });
 };
 
 ControllerPersonalRadio.prototype.pause = function() {
   var self = this;
+  var serviceName;
+  
+  self.commandRouter.pushToastMessage('info', 'PERSONAL', 'pause');
+
+  self.logger.info("#######:PAUSE:CONSUME:"+self.commandRouter.stateMachine.isConsume);
+  self.logger.info("#######:STPAUSEOP:SERVICE:"+self.commandRouter.stateMachine.consumeUpdateService);
+  if (self.commandRouter.stateMachine.consumeUpdateService === 'mpd')
+    serviceName = 'mpd';
+  else
+    serviceName = self.serviceName;
 
   return self.mpdPlugin.pause().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
-      return self.commandRouter.stateMachine.syncState(state,
-          self.serviceName);
+      return self.commandRouter.stateMachine.syncState(state, serviceName);
     });
   });
 };
 
 ControllerPersonalRadio.prototype.resume = function() {
   var self = this;
+  var serviceName;
+
+  self.commandRouter.pushToastMessage('info', 'PERSONAL', 'resume');
+
+  self.logger.info("#######:RESUME:CONSUME:"+self.commandRouter.stateMachine.isConsume);
+  self.logger.info("#######:RESUME:SERVICE:"+self.commandRouter.stateMachine.consumeUpdateService);
+  if (self.commandRouter.stateMachine.consumeUpdateService === 'mpd')
+    serviceName = 'mpd';
+  else
+    serviceName = self.serviceName;
 
   return self.mpdPlugin.resume().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
-      return self.commandRouter.stateMachine.syncState(state,
-          self.serviceName);
+      return self.commandRouter.stateMachine.syncState(state, serviceName);
     });
   });
 };
