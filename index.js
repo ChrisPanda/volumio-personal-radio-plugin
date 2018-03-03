@@ -445,8 +445,8 @@ ControllerPersonalRadio.prototype.stop = function() {
   );
 
   self.logger.info("#######:STOP:CONSUME:"+self.commandRouter.stateMachine.isConsume);
-  self.logger.info("#######:STOP:SERVICE:"+self.commandRouter.stateMachine.consumeUpdateService);
-  if (self.commandRouter.stateMachine.consumeUpdateService === 'mpd')
+  self.logger.info("#######:STOP:SERVICE:"+self.commandRouter.stateMachine.consumeState.service);
+  if (self.commandRouter.stateMachine.consumeState.service === 'mpd')
     serviceName = 'mpd';
   else
     serviceName = self.serviceName;
@@ -465,8 +465,8 @@ ControllerPersonalRadio.prototype.pause = function() {
   self.commandRouter.pushToastMessage('info', 'PERSONAL', 'pause');
 
   self.logger.info("#######:PAUSE:CONSUME:"+self.commandRouter.stateMachine.isConsume);
-  self.logger.info("#######:STPAUSEOP:SERVICE:"+self.commandRouter.stateMachine.consumeUpdateService);
-  if (self.commandRouter.stateMachine.consumeUpdateService === 'mpd')
+  self.logger.info("#######:STPAUSEOP:SERVICE:"+self.commandRouter.stateMachine.consumeState.service);
+  if (self.commandRouter.stateMachine.consumeState.service === 'mpd')
     serviceName = 'mpd';
   else
     serviceName = self.serviceName;
@@ -485,8 +485,8 @@ ControllerPersonalRadio.prototype.resume = function() {
   self.commandRouter.pushToastMessage('info', 'PERSONAL', 'resume');
 
   self.logger.info("#######:RESUME:CONSUME:"+self.commandRouter.stateMachine.isConsume);
-  self.logger.info("#######:RESUME:SERVICE:"+self.commandRouter.stateMachine.consumeUpdateService);
-  if (self.commandRouter.stateMachine.consumeUpdateService === 'mpd')
+  self.logger.info("#######:RESUME:SERVICE:"+self.commandRouter.stateMachine.consumeState.service);
+  if (self.commandRouter.stateMachine.consumeState.service === 'mpd')
     serviceName = 'mpd';
   else
     serviceName = self.serviceName;
