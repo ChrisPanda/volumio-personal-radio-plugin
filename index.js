@@ -237,6 +237,15 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
           },
           'img': function ($a) {
             return $a.find('img[aria-hidden]').attr('src');
+          },
+          'badge': function ($a) {
+            var obj = $a.find('div[class]');
+            if ( (obj[2] !== undefined) && obj[2].attribs.class.startsWith('badge') ) {
+              console.log("test=", obj[2]);
+              return obj[2].children[0].data;
+            }
+            else
+              return null;
           }
         }
       ])
@@ -246,10 +255,17 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
         response.navigation.lists[0].title = self.getRadioI18nString('TITLE_' + uri.toUpperCase());
         response.navigation.lists[0].items = [];
         for (var item in parseResult) {
+          var title;
+
+          if (parseResult[item].badge !== null)
+            title = '[' +  parseResult[item].badge + ']: '; + parseResult[item].title''
+          else
+            title = parseResult[item].title;
+
           var channel = {
             service: self.serviceName,
             type: 'folder',
-            title: parseResult[item].title,
+            title: title,
             //icon: 'fa fa-folder-open-o',
             albumart: 'http:' + parseResult[item].img,
             uri: 'kradio/bbc/' + uri + '/' + parseResult[item].uri.match(/programmes\/(.*)\/episodes/)[1]
