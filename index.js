@@ -450,6 +450,7 @@ ControllerPersonalRadio.prototype.stop = function() {
     serviceName = 'mpd';
   else
     serviceName = self.serviceName;
+  serviceName = self.serviceName;
 
   return self.mpdPlugin.stop().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
@@ -465,11 +466,12 @@ ControllerPersonalRadio.prototype.pause = function() {
   self.commandRouter.pushToastMessage('info', 'PERSONAL', 'pause');
 
   self.logger.info("#######:PAUSE:CONSUME:"+self.commandRouter.stateMachine.isConsume);
-  self.logger.info("#######:STPAUSEOP:SERVICE:"+self.commandRouter.stateMachine.consumeState.service);
+  self.logger.info("#######:PAUSE:SERVICE:"+self.commandRouter.stateMachine.consumeState.service);
   if (self.commandRouter.stateMachine.consumeState.service === 'mpd')
     serviceName = 'mpd';
   else
     serviceName = self.serviceName;
+  serviceName = self.serviceName;
 
   return self.mpdPlugin.pause().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
@@ -490,6 +492,7 @@ ControllerPersonalRadio.prototype.resume = function() {
     serviceName = 'mpd';
   else
     serviceName = self.serviceName;
+  serviceName = self.serviceName;
 
   return self.mpdPlugin.resume().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
@@ -514,6 +517,8 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       type: 'track',
       trackType: self.getRadioI18nString('PLUGIN_NAME'),
       radioType: station,
+      samplerate: '',
+      bitdepth: '',
       albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+station+'.svg'
   };
 
