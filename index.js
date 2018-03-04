@@ -258,7 +258,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
           var title;
 
           if (parseResult[item].badge !== null)
-            title = '[' +  parseResult[item].badge + ']: '; + parseResult[item].title''
+            title = '[' +  parseResult[item].badge + ']: ' + parseResult[item].title;
           else
             title = parseResult[item].title;
 
