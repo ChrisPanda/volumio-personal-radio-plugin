@@ -466,7 +466,6 @@ ControllerPersonalRadio.prototype.seek = function (position) {
 
 ControllerPersonalRadio.prototype.stop = function() {
 	var self = this;
-	var serviceName;
 
   self.commandRouter.pushToastMessage(
       'info',
@@ -476,33 +475,31 @@ ControllerPersonalRadio.prototype.stop = function() {
 
   return self.mpdPlugin.stop().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
-      return self.commandRouter.stateMachine.syncState(state, serviceName);
+      return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
 };
 
 ControllerPersonalRadio.prototype.pause = function() {
   var self = this;
-  var serviceName;
   
   self.commandRouter.pushToastMessage('info', 'PERSONAL', 'pause');
 
   return self.mpdPlugin.pause().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
-      return self.commandRouter.stateMachine.syncState(state, serviceName);
+      return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
 };
 
 ControllerPersonalRadio.prototype.resume = function() {
   var self = this;
-  var serviceName;
 
   self.commandRouter.pushToastMessage('info', 'PERSONAL', 'resume');
 
   return self.mpdPlugin.resume().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
-      return self.commandRouter.stateMachine.syncState(state, serviceName);
+      return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
 };
