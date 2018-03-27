@@ -319,12 +319,11 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
       //self.logger.info("ControllerPersonalRadio::PODCAST:IMAGE:"+self.podcastImage);
 
       feed.items.forEach(function (entry) {
-        //console.log(entry.title + ':' + entry.enclosureSecure.$.url);
         var channel = {
           service: self.serviceName,
           type: 'mywebradio',
           title: entry.title,
-          icon: 'fa fa-music',
+          icon: 'fa fa-podcast',
           uri: 'webbbc/0/' + entry.enclosureSecure.$.url
         };
         response.navigation.lists[0].items.push(channel);
@@ -424,20 +423,30 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         self.getRadioI18nString('PLUGIN_NAME'),
         self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
 
-      return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
-        switch (track.radioType) {
-          case 'kbs':
-          case 'sbs':
-          case 'mbc':
-            return self.mpdPlugin.getState().then(function (state) {
-                return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      if (track.radioType != 'linn') {
+        self.mpdPlugin.clientMpd.on('system', function (status) {
+          if (status !== 'playlist' && status !== undefined) {
+            self.mpdPlugin.getState().then(function (state) {
+              if (state.status === 'play') {
+                return self.commandRouter.stateMachine.syncState(state,
+                    self.serviceName);
+              }
             });
-            break;
-          default:
-            self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
-            return libQ.resolve();
-        }
-      })
+          }
+        });
+
+        return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
+          return self.mpdPlugin.getState().then(function (state) {
+            return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+          });
+        });
+      }
+      else {
+        return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
+          self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
+          return libQ.resolve();
+        })
+      }
     })
     .fail(function (e) {
       return defer.reject(new Error());
@@ -460,14 +469,6 @@ ControllerPersonalRadio.prototype.stop = function() {
       self.getRadioI18nString('STOP_RADIO_CHANNEL')
   );
 
-  self.logger.info("#######:STOP:CONSUME:"+self.commandRouter.stateMachine.isConsume);
-  self.logger.info("#######:STOP:SERVICE:"+self.commandRouter.stateMachine.consumeState.service);
-  if (self.commandRouter.stateMachine.consumeState.service === 'mpd')
-    serviceName = 'mpd';
-  else
-    serviceName = self.serviceName;
-  serviceName = self.serviceName;
-
   return self.mpdPlugin.stop().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
       return self.commandRouter.stateMachine.syncState(state, serviceName);
@@ -481,14 +482,6 @@ ControllerPersonalRadio.prototype.pause = function() {
   
   self.commandRouter.pushToastMessage('info', 'PERSONAL', 'pause');
 
-  self.logger.info("#######:PAUSE:CONSUME:"+self.commandRouter.stateMachine.isConsume);
-  self.logger.info("#######:PAUSE:SERVICE:"+self.commandRouter.stateMachine.consumeState.service);
-  if (self.commandRouter.stateMachine.consumeState.service === 'mpd')
-    serviceName = 'mpd';
-  else
-    serviceName = self.serviceName;
-  serviceName = self.serviceName;
-
   return self.mpdPlugin.pause().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
       return self.commandRouter.stateMachine.syncState(state, serviceName);
@@ -501,14 +494,6 @@ ControllerPersonalRadio.prototype.resume = function() {
   var serviceName;
 
   self.commandRouter.pushToastMessage('info', 'PERSONAL', 'resume');
-
-  self.logger.info("#######:RESUME:CONSUME:"+self.commandRouter.stateMachine.isConsume);
-  self.logger.info("#######:RESUME:SERVICE:"+self.commandRouter.stateMachine.consumeState.service);
-  if (self.commandRouter.stateMachine.consumeState.service === 'mpd')
-    serviceName = 'mpd';
-  else
-    serviceName = self.serviceName;
-  serviceName = self.serviceName;
 
   return self.mpdPlugin.resume().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
