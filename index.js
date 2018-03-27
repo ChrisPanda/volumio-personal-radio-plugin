@@ -423,29 +423,34 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         self.getRadioI18nString('PLUGIN_NAME'),
         self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
 
-      if (track.radioType != 'linn') {
-        self.mpdPlugin.clientMpd.on('system', function (status) {
-          if (status !== 'playlist' && status !== undefined) {
-            self.mpdPlugin.getState().then(function (state) {
-              if (state.status === 'play') {
-                return self.commandRouter.stateMachine.syncState(state,
-                    self.serviceName);
-              }
-            });
-          }
-        });
-
-        return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
-          return self.mpdPlugin.getState().then(function (state) {
-            return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      switch (track.radioType) {
+        case 'bbc':
+          self.mpdPlugin.clientMpd.on('system', function (status) {
+            if (status !== 'playlist' && status !== undefined) {
+              self.mpdPlugin.getState().then(function (state) {
+                if (state.status === 'play') {
+                  return self.commandRouter.stateMachine.syncState(state,
+                      self.serviceName);
+                }
+              });
+            }
           });
-        });
-      }
-      else {
-        return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
-          self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
-          return libQ.resolve();
-        })
+        case 'kbs':
+        case 'sbs':
+        case 'mbc':
+          return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
+            return self.mpdPlugin.getState().then(function (state) {
+              return self.commandRouter.stateMachine.syncState(state,
+                  self.serviceName);
+            });
+          });
+          break;
+
+        case 'linn':
+          return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
+            self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
+            return libQ.resolve();
+          })
       }
     })
     .fail(function (e) {
