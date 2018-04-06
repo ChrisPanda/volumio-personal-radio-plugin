@@ -425,13 +425,25 @@ ControllerPersonalRadio.prototype.getState = function () {
       var trackInfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
       self.logger.info("ControllerPersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
 
-      collectedState.isStreaming = true;
       collectedState.title = trackInfo.title;
       collectedState.artist = trackInfo.artist;
       collectedState.album = trackInfo.album;
       collectedState.albumart = trackInfo.albumart;
       collectedState.uri = trackInfo.uri;
-      collectedState.trackType = trackInfo.trackType.split('?')[0];
+      collectedState.trackType = trackInfo.trackType;
+      //collectedState.duration = 9999999;
+      if ( (trackInfo.radioType === 'kbs') || (trackInfo.radioType === 'mbc') || (trackInfo.radioType === 'sbs') ) {
+        collectedState.service = 'webradio';
+        collectedState.stream = true;
+        collectedState.volatile = true;
+        collectedState.isStreaming = true;
+      }
+      else {
+        collectedState.service = self.serviceName;
+        collectedState.stream = false;
+        collectedState.volatile = false;
+        collectedState.isStreaming = false;
+      }
       // Else return null track info
     } else {
       collectedState.isStreaming = false;
@@ -440,6 +452,9 @@ ControllerPersonalRadio.prototype.getState = function () {
       collectedState.album = null;
       collectedState.albumart = null;
       collectedState.uri = null;
+      collectedState.stream = null;
+      collectedState.volatile = null;
+      collectedState.service = self.serviceName
     }
     self.logger.info("ControllerPersonalRadio:collectedState:"+JSON.stringify(collectedState));
     return collectedState;
@@ -565,7 +580,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
       self.commandRouter.pushToastMessage('info',
         self.getRadioI18nString('PLUGIN_NAME'),
         self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
-
+/*
       self.mpdPlugin.clientMpd.on('system', function (status) {
         if (status !== 'playlist' && status !== undefined) {
           self.getState().then(function (state) {
@@ -576,7 +591,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
           });
         }
       });
-
+*/
       switch (track.radioType) {
         case 'bbc':
         case 'kbs':
