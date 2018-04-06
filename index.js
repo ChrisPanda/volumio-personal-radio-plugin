@@ -407,6 +407,154 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
   return defer.promise;
 };
 
+ControllerPersonalRadio.prototype.getState = function () {
+
+  this.commandRouter.pushConsoleMessage('ControllerPersonalRadio::getState');
+  var timeCurrentUpdate = Date.now();
+  this.timeLatestUpdate = timeCurrentUpdate;
+
+  var self = this;
+  return self.sendMpdCommand('status', [])
+  /*.then(function(data) {
+   return self.haltIfNewerUpdateRunning(data, timeCurrentUpdate);
+   })*/
+  .then(function (objState) {
+    var collectedState = self.parseState(objState);
+
+    // If there is a track listed as currently playing, get the track info
+    if (collectedState.position !== null) {
+      return self.sendMpdCommand('playlistinfo', [collectedState.position])
+      /*.then(function(data) {
+       return self.haltIfNewerUpdateRunning(data, timeCurrentUpdate);
+       })*/
+      .then(function (objTrackInfo) {
+        var trackinfo = self.parseTrackInfo(objTrackInfo);
+        collectedState.isStreaming = trackinfo.isStreaming != undefined ? trackinfo.isStreaming : false;
+        collectedState.title = trackinfo.title;
+        collectedState.artist = trackinfo.artist;
+        collectedState.album = trackinfo.album;
+        //collectedState.albumart = trackinfo.albumart;
+        collectedState.uri = trackinfo.uri;
+        collectedState.trackType = trackinfo.trackType.split('?')[0];
+        return collectedState;
+      });
+      // Else return null track info
+    } else {
+      collectedState.isStreaming = false;
+      collectedState.title = null;
+      collectedState.artist = null;
+      collectedState.album = null;
+      //collectedState.albumart = null;
+      collectedState.uri = null;
+      return collectedState;
+    }
+  });
+};
+
+ControllerPersonalRadio.prototype.parseState = function (objState) {
+  var self = this;
+  //console.log(objState);
+
+  this.commandRouter.pushConsoleMessage('ControllerPersonalRadio::parseState');
+
+  // Pull track duration out of status message
+  var nDuration = null;
+  if ('time' in objState) {
+    var arrayTimeData = objState.time.split(':');
+    nDuration = Math.round(Number(arrayTimeData[1]));
+  }
+
+  // Pull the elapsed time
+  var nSeek = null;
+  if ('elapsed' in objState) {
+    nSeek = Math.round(Number(objState.elapsed) * 1000);
+  }
+
+  // Pull the queue position of the current track
+  var nPosition = null;
+  if ('song' in objState) {
+    nPosition = Number(objState.song);
+  }
+
+  // Pull audio metrics
+  var nBitDepth = null;
+  var nSampleRate = null;
+  var nChannels = null;
+  if ('audio' in objState) {
+    var objMetrics = objState.audio.split(':');
+    var nSampleRateRaw = Number(objMetrics[0]) / 1000;
+    nBitDepth = Number(objMetrics[1])+' bit';
+    nChannels = Number(objMetrics[2]);
+    if (objMetrics[1] == 'f') {
+      nBitDepth = '32 bit';
+    } else if (objMetrics[0] == 'dsd64') {
+      var nSampleRateRaw = '2.82 MHz';
+      nBitDepth = '1 bit';
+      nChannels = 2;
+    } else if (objMetrics[0] == 'dsd128') {
+      var nSampleRateRaw = '5.64 MHz';
+      nBitDepth = '1 bit';
+      nChannels = 2;
+    } else if (objMetrics[0] == 'dsd256') {
+      var nSampleRateRaw = '11.28 MHz';
+      nBitDepth = '1 bit';
+      nChannels = 2;
+    } else if (objMetrics[0] == 'dsd512') {
+      var nSampleRateRaw = '22.58 MHz';
+      nBitDepth = '1 bit';
+      nChannels = 2;
+    } else if (objMetrics[1] == 'dsd') {
+      if (nSampleRateRaw === 352.8) {
+        var nSampleRateRaw = '2.82 MHz';
+        nBitDepth = '1 bit'
+      } else if (nSampleRateRaw === 705.6) {
+        var nSampleRateRaw = '5.64 MHz';
+        nBitDepth = '1 bit'
+      } else if (nSampleRateRaw === 1411.2) {
+        var nSampleRateRaw = '11.2 MHz';
+        nBitDepth = '1 bit'
+      } else {
+        var nSampleRateRaw = nSampleRateRaw + ' KHz';
+      }
+    } else {
+      var nSampleRateRaw = nSampleRateRaw + ' KHz';
+    }
+    nSampleRate = nSampleRateRaw;
+  }
+  var random = null;
+  if ('random' in objState) {
+    random = objState.random == 1;
+  }
+
+  var repeat = null;
+  if ('repeat' in objState) {
+    repeat = objState.repeat == 1;
+  }
+
+  var sStatus = null;
+  if ('state' in objState) {
+    sStatus = objState.state;
+  }
+
+  var updatedb = false;
+  if ('updating_db' in objState) {
+    updatedb = true;
+  }
+
+  return {
+    status: sStatus,
+    position: nPosition,
+    seek: nSeek,
+    duration: nDuration,
+    samplerate: nSampleRate,
+    bitdepth: nBitDepth,
+    channels: nChannels,
+    random: random,
+    updatedb: updatedb,
+    repeat: repeat
+  };
+};
+
 ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
   var self = this;
   var defer = libQ.defer();
@@ -423,23 +571,24 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         self.getRadioI18nString('PLUGIN_NAME'),
         self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
 
-      switch (track.radioType) {
-        case 'bbc':
-          self.mpdPlugin.clientMpd.on('system', function (status) {
-            if (status !== 'playlist' && status !== undefined) {
-              self.mpdPlugin.getState().then(function (state) {
-                if (state.status === 'play') {
-                  return self.commandRouter.stateMachine.syncState(state,
-                      self.serviceName);
-                }
-              });
+      self.mpdPlugin.clientMpd.on('system', function (status) {
+        if (status !== 'playlist' && status !== undefined) {
+          self.getState().then(function (state) {
+            if (state.status === 'play') {
+              return self.commandRouter.stateMachine.syncState(state,
+                  self.serviceName);
             }
           });
+        }
+      });
+
+      switch (track.radioType) {
+        case 'bbc':
         case 'kbs':
         case 'sbs':
         case 'mbc':
           return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
-            return self.mpdPlugin.getState().then(function (state) {
+            return self.getState().then(function (state) {
               return self.commandRouter.stateMachine.syncState(state,
                   self.serviceName);
             });
@@ -474,7 +623,7 @@ ControllerPersonalRadio.prototype.stop = function() {
   );
 
   return self.mpdPlugin.stop().then(function () {
-    return self.mpdPlugin.getState().then(function (state) {
+    return self.getState().then(function (state) {
       return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
@@ -486,7 +635,7 @@ ControllerPersonalRadio.prototype.pause = function() {
   self.commandRouter.pushToastMessage('info', 'PERSONAL', 'pause');
 
   return self.mpdPlugin.pause().then(function () {
-    return self.mpdPlugin.getState().then(function (state) {
+    return self.getState().then(function (state) {
       return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
@@ -498,7 +647,7 @@ ControllerPersonalRadio.prototype.resume = function() {
   self.commandRouter.pushToastMessage('info', 'PERSONAL', 'resume');
 
   return self.mpdPlugin.resume().then(function () {
-    return self.mpdPlugin.getState().then(function (state) {
+    return self.getState().then(function (state) {
       return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
