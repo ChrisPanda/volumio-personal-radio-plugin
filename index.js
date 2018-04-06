@@ -324,7 +324,7 @@ ControllerPersonalRadio.prototype.getPodcastArticle = function(channel, uri) {
           type: 'mywebradio',
           title: entry.title,
           icon: 'fa fa-podcast',
-          uri: 'webbbc/0/' + entry.enclosureSecure.$.url
+          uri: 'webbbc/0/' + entry.enclosureSecure.$.url + '|' + entry.title
         };
         response.navigation.lists[0].items.push(channel);
       });
@@ -416,7 +416,8 @@ ControllerPersonalRadio.prototype.getState = function () {
 
   return self.mpdPlugin.sendMpdCommand('status', [])
   .then(function (objState) {
-    var collectedState = self.parseState(objState);
+    //var collectedState = self.parseState(objState);
+    var collectedState = self.mpdPlugin.parseState(objState);
     self.logger.info("ControllerPersonalRadio:GETSTATE:"+JSON.stringify(collectedState));
 
     // If there is a track listed as currently playing, get the track info
@@ -433,6 +434,11 @@ ControllerPersonalRadio.prototype.getState = function () {
       collectedState.trackType = trackInfo.trackType;
       collectedState.radioType = trackInfo.radioType;
       //collectedState.duration = 9999999;
+      collectedState.service = self.serviceName;
+      collectedState.stream = false;
+      collectedState.volatile = false;
+      collectedState.isStreaming = false;
+        /*
       if ( (trackInfo.radioType === 'kbs') || (trackInfo.radioType === 'mbc') || (trackInfo.radioType === 'sbs') ) {
         collectedState.service = 'webradio';
         collectedState.stream = true;
@@ -445,6 +451,7 @@ ControllerPersonalRadio.prototype.getState = function () {
         collectedState.volatile = false;
         collectedState.isStreaming = false;
       }
+      */
       // Else return null track info
     } else {
       collectedState.isStreaming = false;
@@ -789,7 +796,10 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'webbbc':
-      response["uri"] = uri.match(/webbbc\/.\/(.*)/)[1];
+      var uriInfo = uri.match(/webbbc\/[0-9]+\/(.*)\|(.*)/);
+      //response["uri"] = uri.match(/webbbc\/.\/(.*)/)[1];
+      response["uri"] = uriInfo[1];
+      response["title"] = uriInfo[2];
       response["name"] = 'BBC podcast';
       response["albumart"] = self.podcastImage;
       defer.resolve(response);
