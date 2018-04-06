@@ -408,25 +408,50 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
 };
 
 ControllerPersonalRadio.prototype.getState = function () {
+  var self = this;
 
   this.commandRouter.pushConsoleMessage('ControllerPersonalRadio::getState');
   var timeCurrentUpdate = Date.now();
   this.timeLatestUpdate = timeCurrentUpdate;
+  var collectedState = {};
 
-  var self = this;
-  return self.sendMpdCommand('status', [])
-  /*.then(function(data) {
-   return self.haltIfNewerUpdateRunning(data, timeCurrentUpdate);
-   })*/
+  self.logger.info("ControllerPersonalRadio:POSITION:"+self.commandRouter.stateMachine.currentPosition);
+  var objTrackInfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
+  self.logger.info("ControllerPersonalRadio:trackInfo:"+JSON.stringify(objTrackInfo));
+
+  if (objTrackInfo) {
+    collectedState = {
+      isStreaming: true,
+      title: trackinfo.title,
+      artist: trackinfo.artist,
+      album: trackinfo.album,
+      albumart: trackinfo.albumart,
+      uri: trackinfo.uri,
+      trackType: trackinfo.trackType
+    };
+  }
+  else {
+    collectedState = {
+      isStreaming: false,
+      title: null,
+      artist: null,
+      album: null,
+      albumart: null,
+      uri: null,
+      trackType: null
+    };
+  }
+  return collectedState;
+
+  /*
+  return self.mpdPlugin.sendMpdCommand('status', [])
   .then(function (objState) {
     var collectedState = self.parseState(objState);
+    self.logger.info("ControllerPersonalRadio:GETSTATE:"+JSON.stringify(collectedState));
 
     // If there is a track listed as currently playing, get the track info
     if (collectedState.position !== null) {
-      return self.sendMpdCommand('playlistinfo', [collectedState.position])
-      /*.then(function(data) {
-       return self.haltIfNewerUpdateRunning(data, timeCurrentUpdate);
-       })*/
+      return self.mpdPlugin.sendMpdCommand('playlistinfo', [collectedState.position])
       .then(function (objTrackInfo) {
         var trackinfo = self.parseTrackInfo(objTrackInfo);
         collectedState.isStreaming = trackinfo.isStreaming != undefined ? trackinfo.isStreaming : false;
@@ -449,6 +474,9 @@ ControllerPersonalRadio.prototype.getState = function () {
       return collectedState;
     }
   });
+
+*/
+
 };
 
 ControllerPersonalRadio.prototype.parseState = function (objState) {
