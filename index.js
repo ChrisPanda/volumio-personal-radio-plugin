@@ -413,37 +413,7 @@ ControllerPersonalRadio.prototype.getState = function () {
   this.commandRouter.pushConsoleMessage('ControllerPersonalRadio::getState');
   var timeCurrentUpdate = Date.now();
   this.timeLatestUpdate = timeCurrentUpdate;
-  var collectedState = {};
 
-  self.logger.info("ControllerPersonalRadio:POSITION:"+self.commandRouter.stateMachine.currentPosition);
-  var objTrackInfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
-  self.logger.info("ControllerPersonalRadio:trackInfo:"+JSON.stringify(objTrackInfo));
-
-  if (objTrackInfo) {
-    collectedState = {
-      isStreaming: true,
-      title: trackinfo.title,
-      artist: trackinfo.artist,
-      album: trackinfo.album,
-      albumart: trackinfo.albumart,
-      uri: trackinfo.uri,
-      trackType: trackinfo.trackType
-    };
-  }
-  else {
-    collectedState = {
-      isStreaming: false,
-      title: null,
-      artist: null,
-      album: null,
-      albumart: null,
-      uri: null,
-      trackType: null
-    };
-  }
-  return collectedState;
-
-  /*
   return self.mpdPlugin.sendMpdCommand('status', [])
   .then(function (objState) {
     var collectedState = self.parseState(objState);
@@ -451,32 +421,29 @@ ControllerPersonalRadio.prototype.getState = function () {
 
     // If there is a track listed as currently playing, get the track info
     if (collectedState.position !== null) {
-      return self.mpdPlugin.sendMpdCommand('playlistinfo', [collectedState.position])
-      .then(function (objTrackInfo) {
-        var trackinfo = self.parseTrackInfo(objTrackInfo);
-        collectedState.isStreaming = trackinfo.isStreaming != undefined ? trackinfo.isStreaming : false;
-        collectedState.title = trackinfo.title;
-        collectedState.artist = trackinfo.artist;
-        collectedState.album = trackinfo.album;
-        //collectedState.albumart = trackinfo.albumart;
-        collectedState.uri = trackinfo.uri;
-        collectedState.trackType = trackinfo.trackType.split('?')[0];
-        return collectedState;
-      });
+      self.logger.info("ControllerPersonalRadio:POSITION:"+self.commandRouter.stateMachine.currentPosition);
+      var trackInfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
+      self.logger.info("ControllerPersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
+
+      collectedState.isStreaming = true;
+      collectedState.title = trackInfo.title;
+      collectedState.artist = trackInfo.artist;
+      collectedState.album = trackInfo.album;
+      collectedState.albumart = trackInfo.albumart;
+      collectedState.uri = trackInfo.uri;
+      collectedState.trackType = trackInfo.trackType.split('?')[0];
       // Else return null track info
     } else {
       collectedState.isStreaming = false;
       collectedState.title = null;
       collectedState.artist = null;
       collectedState.album = null;
-      //collectedState.albumart = null;
+      collectedState.albumart = null;
       collectedState.uri = null;
-      return collectedState;
     }
+    self.logger.info("ControllerPersonalRadio:collectedState:"+JSON.stringify(collectedState));
+    return collectedState;
   });
-
-*/
-
 };
 
 ControllerPersonalRadio.prototype.parseState = function (objState) {
