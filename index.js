@@ -431,6 +431,7 @@ ControllerPersonalRadio.prototype.getState = function () {
       collectedState.albumart = trackInfo.albumart;
       collectedState.uri = trackInfo.uri;
       collectedState.trackType = trackInfo.trackType;
+      collectedState.radioType = trackInfo.radioType;
       //collectedState.duration = 9999999;
       if ( (trackInfo.radioType === 'kbs') || (trackInfo.radioType === 'mbc') || (trackInfo.radioType === 'sbs') ) {
         collectedState.service = 'webradio';
@@ -587,18 +588,18 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
       self.commandRouter.pushToastMessage('info',
         self.getRadioI18nString('PLUGIN_NAME'),
         self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
-/*
+
       self.mpdPlugin.clientMpd.on('system', function (status) {
-        if (status !== 'playlist' && status !== undefined) {
+        //if (status !== 'playlist' && status !== undefined) {
           self.getState().then(function (state) {
-            if (state.status === 'play') {
-              return self.commandRouter.stateMachine.syncState(state,
-                  self.serviceName);
+            if ((state.status === 'play') && (state.radioType === 'bbc')) {
+              //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+              return self.pushState(state);
             }
           });
-        }
+        //}
       });
-*/
+
       switch (track.radioType) {
         case 'bbc':
         case 'kbs':
