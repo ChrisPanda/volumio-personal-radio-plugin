@@ -565,6 +565,13 @@ ControllerPersonalRadio.prototype.parseState = function (objState) {
   };
 };
 
+ControllerPersonalRadio.prototype.pushState = function (state) {
+  var self = this;
+  self.logger.info("ControllerPersonalRadio::pushState");
+
+  return self.commandRouter.servicePushState(state, self.serviceName);
+};
+
 ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
   var self = this;
   var defer = libQ.defer();
@@ -599,8 +606,8 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         case 'mbc':
           return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
             return self.getState().then(function (state) {
-              return self.commandRouter.stateMachine.syncState(state,
-                  self.serviceName);
+              //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+              return self.pushState(state);
             });
           });
           break;
@@ -634,7 +641,8 @@ ControllerPersonalRadio.prototype.stop = function() {
 
   return self.mpdPlugin.stop().then(function () {
     return self.getState().then(function (state) {
-      return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      return self.pushState(state);
     });
   });
 };
@@ -646,7 +654,8 @@ ControllerPersonalRadio.prototype.pause = function() {
 
   return self.mpdPlugin.pause().then(function () {
     return self.getState().then(function (state) {
-      return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      return self.pushState(state);
     });
   });
 };
@@ -658,7 +667,8 @@ ControllerPersonalRadio.prototype.resume = function() {
 
   return self.mpdPlugin.resume().then(function () {
     return self.getState().then(function (state) {
-      return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      return self.pushState(state);
     });
   });
 };
