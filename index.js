@@ -323,7 +323,7 @@ ControllerPersonalRadio.prototype.getPodcastBBCEpisodes = function(channel, uri)
           type: 'mywebradio',
           title: entry.title,
           icon: 'fa fa-podcast',
-          uri: 'webbbc/'+ index + '/'+ entry.enclosureSecure.$.url + '|' + entry.title + '|' + feed.title;
+          uri: 'webbbc/'+ index + '/'+ entry.enclosureSecure.$.url + '|' + entry.title + '|' + feed.title
         };
         response.navigation.lists[0].items.push(channel);
       });
