@@ -21,7 +21,7 @@ function ControllerPersonalRadio(context) {
   self.configManager = this.context.configManager;
   self.stateMachine = self.commandRouter.stateMachine;
 
-  self.logger.info("ControllerPersonalRadio::constructor");
+  self.logger.info("PersonalRadio::constructor");
 }
 
 ControllerPersonalRadio.prototype.onVolumioStart = function()
@@ -166,7 +166,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
   var defer = libQ.defer();
   var response;
 
-  //self.logger.info("ControllerPersonalRadio::handleBrowseUri:"+curUri);
+  //self.logger.info("PersonalRadio::handleBrowseUri:"+curUri);
 
   if (curUri.startsWith('kradio')) {
     if (curUri === 'kradio') {
@@ -212,7 +212,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
   var defer = libQ.defer();
 
   var streamUrl = self.bbcPodcastRadio + uri;
-  //self.logger.info("ControllerPersonalRadio:podcast:"+ streamUrl);
+  //self.logger.info("PersonalRadio:podcast:"+ streamUrl);
 
   var waitMessage = self.getRadioI18nString('WAIT_BBC_PODCAST_LIST');
   waitMessage = waitMessage.replace('{0}', uri);
@@ -240,7 +240,6 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
           'badge': function ($a) {
             var obj = $a.find('div[class]');
             if ( (obj[2] !== undefined) && obj[2].attribs.class.startsWith('badge') ) {
-              console.log("test=", obj[2]);
               return obj[2].children[0].data;
             }
             else
@@ -271,7 +270,7 @@ ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
           };
           response.navigation.lists[0].items.push(channel);
         }
-        //self.logger.info("ControllerPersonalRadio::getPodcastBBC:RESULT:"+ JSON.stringify(response));
+        //self.logger.info("PersonalRadio::getPodcastBBC:RESULT:"+ JSON.stringify(response));
 
         defer.resolve(response);
       });
@@ -288,7 +287,7 @@ ControllerPersonalRadio.prototype.getPodcastBBCEpisodes = function(channel, uri)
   var self = this;
   var defer = libQ.defer();
 
-  //self.logger.info("ControllerPersonalRadio::podcast:post:"+ uri);
+  //self.logger.info("PersonalRadio::podcast:post:"+ uri);
   var rssParser = new RssParser({
     customFields: {
       channel: ['image'],
@@ -315,7 +314,7 @@ ControllerPersonalRadio.prototype.getPodcastBBCEpisodes = function(channel, uri)
       response.navigation.lists[0].items = [];
 
       self.podcastImage = feed.itunes.image;
-      //self.logger.info("ControllerPersonalRadio::PODCAST:IMAGE:"+self.podcastImage);
+      //self.logger.info("PersonalRadio::PODCAST:IMAGE:"+self.podcastImage);
 
       feed.items.forEach(function (entry, index) {
         var channel = {
@@ -327,7 +326,7 @@ ControllerPersonalRadio.prototype.getPodcastBBCEpisodes = function(channel, uri)
         };
         response.navigation.lists[0].items.push(channel);
       });
-      //self.logger.info("ControllerPersonalRadio::getPodcastBBCEpisodes:RESULT:"+ JSON.stringify(response));
+      //self.logger.info("PersonalRadio::getPodcastBBCEpisodes:RESULT:"+ JSON.stringify(response));
       defer.resolve(response);
     });
 
@@ -409,22 +408,19 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
 // Playback Controls ---------------------------------------------------------
 ControllerPersonalRadio.prototype.getState = function () {
   var self = this;
-
-  this.commandRouter.pushConsoleMessage('ControllerPersonalRadio::getState');
   var timeCurrentUpdate = Date.now();
-  this.timeLatestUpdate = timeCurrentUpdate;
 
   return self.mpdPlugin.sendMpdCommand('status', [])
     .then(function (objState) {
       //var collectedState = self.parseState(objState);
       var collectedState = self.mpdPlugin.parseState(objState);
-      //self.logger.info("ControllerPersonalRadio:GETSTATE:"+JSON.stringify(collectedState));
+      //self.logger.info("PersonalRadio:GETSTATE:"+JSON.stringify(collectedState));
 
       // If there is a track listed as currently playing, get the track info
       if (collectedState.position !== null) {
-        //self.logger.info("ControllerPersonalRadio:POSITION:"+self.commandRouter.stateMachine.currentPosition);
+        //self.logger.info("PersonalRadio:POSITION:"+self.commandRouter.stateMachine.currentPosition);
         var trackInfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
-        //self.logger.info("ControllerPersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
+        //self.logger.info("PersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
 
         collectedState.title = trackInfo.title;
         collectedState.artist = trackInfo.artist;
@@ -437,21 +433,6 @@ ControllerPersonalRadio.prototype.getState = function () {
         collectedState.stream = false;
         collectedState.volatile = false;
         collectedState.isStreaming = false;
-          /*
-        if ( (trackInfo.radioType === 'kbs') || (trackInfo.radioType === 'mbc') || (trackInfo.radioType === 'sbs') ) {
-          collectedState.service = 'webradio';
-          collectedState.stream = true;
-          collectedState.volatile = true;
-          collectedState.isStreaming = true;
-        }
-        else {
-          collectedState.service = self.serviceName;
-          collectedState.stream = false;
-          collectedState.volatile = false;
-          collectedState.isStreaming = false;
-        }
-        */
-        // Else return null track info
       } else {
         collectedState.isStreaming = false;
         collectedState.title = null;
@@ -463,7 +444,6 @@ ControllerPersonalRadio.prototype.getState = function () {
         collectedState.volatile = null;
         collectedState.service = self.serviceName
       }
-      //self.logger.info("ControllerPersonalRadio:collectedState:"+JSON.stringify(collectedState));
       return collectedState;
     });
 };
@@ -478,6 +458,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
   var self = this;
   var defer = libQ.defer();
 
+  self.commandRouter.pushConsoleMessage('[' + Date.now() + '] ' + 'PersonalRadio::clearAddPlayTrack');
   return self.mpdPlugin.sendMpdCommand('stop', [])
     .then(function() {
         return self.mpdPlugin.sendMpdCommand('clear', []);
@@ -575,7 +556,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var query;
   var station;
 
-  //self.logger.info("ControllerPersonalRadio::explodeUri:"+uri);
+  //self.logger.info("PersonalRadio::explodeUri:"+uri);
   station = uris[0].substring(3);
   response = {
       service: self.serviceName,
