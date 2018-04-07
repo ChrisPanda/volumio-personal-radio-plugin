@@ -19,7 +19,6 @@ function ControllerPersonalRadio(context) {
   self.commandRouter = this.context.coreCommand;
   self.logger = this.context.logger;
   self.configManager = this.context.configManager;
-  self.state = {};
   self.stateMachine = self.commandRouter.stateMachine;
 
   self.logger.info("ControllerPersonalRadio::constructor");
@@ -324,11 +323,11 @@ ControllerPersonalRadio.prototype.getPodcastBBCEpisodes = function(channel, uri)
           type: 'mywebradio',
           title: entry.title,
           icon: 'fa fa-podcast',
-          uri: 'webbbc/'+ index + '/'+ entry.enclosureSecure.$.url + '|' + entry.title
+          uri: 'webbbc/'+ index + '/'+ entry.enclosureSecure.$.url + '|' + entry.title + '|' + feed.title;
         };
         response.navigation.lists[0].items.push(channel);
       });
-      //self.logger.info("ControllerPersonalRadio::PodcastArticle:RESULT:"+ JSON.stringify(response));
+      //self.logger.info("ControllerPersonalRadio::getPodcastBBCEpisodes:RESULT:"+ JSON.stringify(response));
       defer.resolve(response);
     });
 
@@ -469,113 +468,8 @@ ControllerPersonalRadio.prototype.getState = function () {
     });
 };
 
-ControllerPersonalRadio.prototype.parseState = function (objState) {
-  var self = this;
-  //console.log(objState);
-
-  this.commandRouter.pushConsoleMessage('ControllerPersonalRadio::parseState');
-
-  // Pull track duration out of status message
-  var nDuration = null;
-  if ('time' in objState) {
-    var arrayTimeData = objState.time.split(':');
-    nDuration = Math.round(Number(arrayTimeData[1]));
-  }
-
-  // Pull the elapsed time
-  var nSeek = null;
-  if ('elapsed' in objState) {
-    nSeek = Math.round(Number(objState.elapsed) * 1000);
-  }
-
-  // Pull the queue position of the current track
-  var nPosition = null;
-  if ('song' in objState) {
-    nPosition = Number(objState.song);
-  }
-
-  // Pull audio metrics
-  var nBitDepth = null;
-  var nSampleRate = null;
-  var nChannels = null;
-  if ('audio' in objState) {
-    var objMetrics = objState.audio.split(':');
-    var nSampleRateRaw = Number(objMetrics[0]) / 1000;
-    nBitDepth = Number(objMetrics[1])+' bit';
-    nChannels = Number(objMetrics[2]);
-    if (objMetrics[1] == 'f') {
-      nBitDepth = '32 bit';
-    } else if (objMetrics[0] == 'dsd64') {
-      var nSampleRateRaw = '2.82 MHz';
-      nBitDepth = '1 bit';
-      nChannels = 2;
-    } else if (objMetrics[0] == 'dsd128') {
-      var nSampleRateRaw = '5.64 MHz';
-      nBitDepth = '1 bit';
-      nChannels = 2;
-    } else if (objMetrics[0] == 'dsd256') {
-      var nSampleRateRaw = '11.28 MHz';
-      nBitDepth = '1 bit';
-      nChannels = 2;
-    } else if (objMetrics[0] == 'dsd512') {
-      var nSampleRateRaw = '22.58 MHz';
-      nBitDepth = '1 bit';
-      nChannels = 2;
-    } else if (objMetrics[1] == 'dsd') {
-      if (nSampleRateRaw === 352.8) {
-        var nSampleRateRaw = '2.82 MHz';
-        nBitDepth = '1 bit'
-      } else if (nSampleRateRaw === 705.6) {
-        var nSampleRateRaw = '5.64 MHz';
-        nBitDepth = '1 bit'
-      } else if (nSampleRateRaw === 1411.2) {
-        var nSampleRateRaw = '11.2 MHz';
-        nBitDepth = '1 bit'
-      } else {
-        var nSampleRateRaw = nSampleRateRaw + ' KHz';
-      }
-    } else {
-      var nSampleRateRaw = nSampleRateRaw + ' KHz';
-    }
-    nSampleRate = nSampleRateRaw;
-  }
-  var random = null;
-  if ('random' in objState) {
-    random = objState.random == 1;
-  }
-
-  var repeat = null;
-  if ('repeat' in objState) {
-    repeat = objState.repeat == 1;
-  }
-
-  var sStatus = null;
-  if ('state' in objState) {
-    sStatus = objState.state;
-  }
-
-  var updatedb = false;
-  if ('updating_db' in objState) {
-    updatedb = true;
-  }
-
-  return {
-    status: sStatus,
-    position: nPosition,
-    seek: nSeek,
-    duration: nDuration,
-    samplerate: nSampleRate,
-    bitdepth: nBitDepth,
-    channels: nChannels,
-    random: random,
-    updatedb: updatedb,
-    repeat: repeat
-  };
-};
-
 ControllerPersonalRadio.prototype.pushState = function (state) {
   var self = this;
-  //self.logger.info("ControllerPersonalRadio::pushState");
 
   return self.commandRouter.servicePushState(state, self.serviceName);
 };
@@ -600,7 +494,6 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         if (status !== 'playlist' && status !== undefined) {
           self.getState().then(function (state) {
             if ((state.status === 'play') && (state.radioType === 'bbc')) {
-              //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
               return self.pushState(state);
             }
           });
@@ -616,7 +509,6 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
       else {
         return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
           return self.getState().then(function (state) {
-            //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
             return self.pushState(state);
           });
         });
@@ -657,7 +549,6 @@ ControllerPersonalRadio.prototype.pause = function() {
 
   return self.mpdPlugin.pause().then(function () {
     return self.getState().then(function (state) {
-      //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
       return self.pushState(state);
     });
   });
@@ -670,7 +561,6 @@ ControllerPersonalRadio.prototype.resume = function() {
 
   return self.mpdPlugin.resume().then(function () {
     return self.getState().then(function (state) {
-      //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
       return self.pushState(state);
     });
   });
@@ -791,11 +681,10 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'webbbc':
-      var uriInfo = uri.match(/webbbc\/[0-9]+\/(.*)\|(.*)/);
-      //response["uri"] = uri.match(/webbbc\/.\/(.*)/)[1];
+      var uriInfo = uri.match(/webbbc\/[0-9]+\/(.*)\|(.*)|(.*)/);
       response["uri"] = uriInfo[1];
-      response["title"] = uriInfo[2];
-      response["name"] = 'BBC podcast';
+      response["album"] = uriInfo[2];
+      response["name"] = uriInfo[3];
       response["albumart"] = self.podcastImage;
       defer.resolve(response);
       break;
