@@ -418,13 +418,13 @@ ControllerPersonalRadio.prototype.getState = function () {
     .then(function (objState) {
       //var collectedState = self.parseState(objState);
       var collectedState = self.mpdPlugin.parseState(objState);
-      self.logger.info("ControllerPersonalRadio:GETSTATE:"+JSON.stringify(collectedState));
+      //self.logger.info("ControllerPersonalRadio:GETSTATE:"+JSON.stringify(collectedState));
 
       // If there is a track listed as currently playing, get the track info
       if (collectedState.position !== null) {
-        self.logger.info("ControllerPersonalRadio:POSITION:"+self.commandRouter.stateMachine.currentPosition);
+        //self.logger.info("ControllerPersonalRadio:POSITION:"+self.commandRouter.stateMachine.currentPosition);
         var trackInfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
-        self.logger.info("ControllerPersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
+        //self.logger.info("ControllerPersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
 
         collectedState.title = trackInfo.title;
         collectedState.artist = trackInfo.artist;
@@ -463,7 +463,7 @@ ControllerPersonalRadio.prototype.getState = function () {
         collectedState.volatile = null;
         collectedState.service = self.serviceName
       }
-      self.logger.info("ControllerPersonalRadio:collectedState:"+JSON.stringify(collectedState));
+      //self.logger.info("ControllerPersonalRadio:collectedState:"+JSON.stringify(collectedState));
       return collectedState;
     });
 };
@@ -575,7 +575,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var query;
   var station;
 
-  self.logger.info("ControllerPersonalRadio::explodeUri:"+uri);
+  //self.logger.info("ControllerPersonalRadio::explodeUri:"+uri);
   station = uris[0].substring(3);
   response = {
       service: self.serviceName,
@@ -681,10 +681,10 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'webbbc':
-      var uriInfo = uri.match(/webbbc\/[0-9]+\/(.*)\|(.*)|(.*)/);
+      var uriInfo = uri.match(/webbbc\/[0-9]+\/(.*)\|(.*)\|(.*)/);
       response["uri"] = uriInfo[1];
-      response["album"] = uriInfo[2];
-      response["name"] = uriInfo[3];
+      response["name"] = uriInfo[2];
+      response["album"] = uriInfo[3];
       response["albumart"] = self.podcastImage;
       defer.resolve(response);
       break;
