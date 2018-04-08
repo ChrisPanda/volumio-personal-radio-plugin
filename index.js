@@ -418,8 +418,8 @@ ControllerPersonalRadio.prototype.getState = function () {
 
       // If there is a track listed as currently playing, get the track info
       if (collectedState.position !== null) {
-        //self.logger.info("PersonalRadio:POSITION:"+self.commandRouter.stateMachine.currentPosition);
-        var trackInfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
+        //self.logger.info("PersonalRadio:POSITION:"+self.stateMachine.currentPosition);
+        var trackInfo=self.stateMachine.getTrack(self.stateMachine.currentPosition);
         //self.logger.info("PersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
 
         collectedState.title = trackInfo.title;
@@ -483,7 +483,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
 
       if (track.radioType === 'linn') {
         return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
-          self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
+          self.stateMachine.setConsumeUpdateService('mpd');
           return libQ.resolve();
         })
       }
@@ -517,7 +517,7 @@ ControllerPersonalRadio.prototype.stop = function() {
 
   return self.mpdPlugin.stop().then(function () {
     return self.getState().then(function (state) {
-      //return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      //return self.stateMachine.syncState(state, self.serviceName);
       return self.pushState(state);
     });
   });
