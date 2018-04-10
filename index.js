@@ -412,6 +412,8 @@ ControllerPersonalRadio.prototype.getState = function () {
       if (collectedState.position !== null) {
         var trackInfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
         self.logger.info("PersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
+        if (collectedState.samplerate) trackInfo.samplerate = collectedState.samplerate;
+        if (collectedState.bitdepth) trackInfo.bitdepth = collectedState.bitdepth;
 
         collectedState.title = trackInfo.title;
         collectedState.artist = trackInfo.artist;
@@ -424,6 +426,9 @@ ControllerPersonalRadio.prototype.getState = function () {
         collectedState.stream = false;
         collectedState.volatile = false;
         collectedState.isStreaming = false;
+
+        if (trackInfo.radioType !== "bbc")
+          delete collectedState["duration"];
       } else {
         collectedState.isStreaming = false;
         collectedState.title = null;
@@ -463,7 +468,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
       self.mpdPlugin.clientMpd.on('system', function (status) {
         if (status !== 'playlist' && status !== undefined) {
           self.getState().then(function (state) {
-            if ((state.status === 'play') && (state.radioType === 'bbc')) {
+            if ((state.status === 'play') && (state.radioType !== 'linn')) {
               return self.pushState(state);
             }
           });
