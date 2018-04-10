@@ -1,6 +1,7 @@
 'use strict';
 
-// This Volumio plugin provides Korean radios (SBS, KBS, MBC) and Linn radio.
+// This Volumio plugin provides Korean radios (SBS, KBS, MBC), Linn radio
+// and BBC podcasts radio.
 
 var libQ = require('kew');
 var fs = require('fs-extra');
@@ -19,7 +20,6 @@ function ControllerPersonalRadio(context) {
   self.commandRouter = this.context.coreCommand;
   self.logger = this.context.logger;
   self.configManager = this.context.configManager;
-  self.stateMachine = self.commandRouter.stateMachine;
 
   self.logger.info("PersonalRadio::constructor");
 }
@@ -170,33 +170,33 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
 
   if (curUri.startsWith('kradio')) {
     if (curUri === 'kradio') {
-      defer.resolve(self.getRootContent());
+      response = self.getRootContent();
     }
     else if (curUri === 'kradio/kbs') {
-      defer.resolve(self.getRadioContent('kbs'));
+      response = self.getRadioContent('kbs');
     }
     else if (curUri === 'kradio/sbs') {
-      defer.resolve(self.getRadioContent('sbs'));
+      response = self.getRadioContent('sbs');
     }
     else if (curUri === 'kradio/mbc') {
-      defer.resolve(self.getRadioContent('mbc'));
+      response = self.getRadioContent('mbc');
     }
     else if (curUri === 'kradio/linn') {
-      defer.resolve(self.getRadioContent('linn'));
+      response = self.getRadioContent('linn');
     }
     else if (curUri === 'kradio/bbc') {
-      defer.resolve(self.getRadioContent('bbc'));
+      response = self.getRadioContent('bbc');
     }
     else {
       var uriParts = curUri.split('/');
 
       if ((uriParts.length === 3) && (uriParts[1] === 'bbc'))
         self.getPodcastBBC(uriParts[2]).then(function (result) {
-          defer.resolve(result);
+          response = result;
         });
       else if ((uriParts.length === 4) && (uriParts[1] === 'bbc'))
         self.getPodcastBBCEpisodes(uriParts[2], uriParts[3]).then(function (result) {
-          defer.resolve(result);
+          response = result;
         });
       else {
         return defer.reject(new Error());
@@ -204,7 +204,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
     }
   }
 
-  return defer.promise;
+  return response;
 };
 
 ControllerPersonalRadio.prototype.getPodcastBBC = function(uri) {
@@ -346,7 +346,6 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
         service: self.serviceName,
         type: 'folder',
         title: self.rootStations[key].title,
-        //icon: 'fa fa-folder-open-o',
         uri: self.rootStations[key].uri,
         albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+ self.rootStations[key].albumart
       };
@@ -390,7 +389,6 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
     };
     if (station === 'bbc') {
       channel["type"] = 'folder';
-      //channel["icon"] = 'fa fa-folder-open-o';
       channel["albumart"] = '/albumart?sourceicon=music_service/personal_radio/logos/'+ radioStation[i].albumart
     }
     else {
@@ -399,7 +397,6 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
     }
     response.navigation.lists[0].items.push(channel);
   }
-
   defer.resolve(response);
 
   return defer.promise;
@@ -408,7 +405,6 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
 // Playback Controls ---------------------------------------------------------
 ControllerPersonalRadio.prototype.getState = function () {
   var self = this;
-  var timeCurrentUpdate = Date.now();
 
   return self.mpdPlugin.sendMpdCommand('status', [])
     .then(function (objState) {
@@ -418,9 +414,8 @@ ControllerPersonalRadio.prototype.getState = function () {
 
       // If there is a track listed as currently playing, get the track info
       if (collectedState.position !== null) {
-        //self.logger.info("PersonalRadio:POSITION:"+self.stateMachine.currentPosition);
-        var trackInfo=self.stateMachine.getTrack(self.stateMachine.currentPosition);
-        //self.logger.info("PersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
+        var trackInfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
+        self.logger.info("PersonalRadio:trackInfo:"+JSON.stringify(trackInfo));
 
         collectedState.title = trackInfo.title;
         collectedState.artist = trackInfo.artist;
@@ -451,7 +446,9 @@ ControllerPersonalRadio.prototype.getState = function () {
 ControllerPersonalRadio.prototype.pushState = function (state) {
   var self = this;
 
-  return self.commandRouter.servicePushState(state, self.serviceName);
+  self.logger.info("PersonalRadio:pushState:"+JSON.stringify(state));
+  if (state.service === self.serviceName)
+    return self.commandRouter.servicePushState(state, self.serviceName);
 };
 
 ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
@@ -467,10 +464,6 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         return self.mpdPlugin.sendMpdCommand('add "'+track.uri+'"',[]);
     })
     .then(function () {
-      self.commandRouter.pushToastMessage('info',
-        self.getRadioI18nString('PLUGIN_NAME'),
-        self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
-
       self.mpdPlugin.clientMpd.on('system', function (status) {
         if (status !== 'playlist' && status !== undefined) {
           self.getState().then(function (state) {
@@ -483,7 +476,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
 
       if (track.radioType === 'linn') {
         return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
-          self.stateMachine.setConsumeUpdateService('mpd');
+          self.commandRouter.stateMachine.setConsumeUpdateService('mpd');
           return libQ.resolve();
         })
       }
@@ -517,7 +510,6 @@ ControllerPersonalRadio.prototype.stop = function() {
 
   return self.mpdPlugin.stop().then(function () {
     return self.getState().then(function (state) {
-      //return self.stateMachine.syncState(state, self.serviceName);
       return self.pushState(state);
     });
   });
