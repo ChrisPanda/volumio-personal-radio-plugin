@@ -191,13 +191,9 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
       var uriParts = curUri.split('/');
 
       if ((uriParts.length === 3) && (uriParts[1] === 'bbc'))
-        self.getPodcastBBC(uriParts[2]).then(function (result) {
-          response = result;
-        });
+        response = self.getPodcastBBC(uriParts[2]);
       else if ((uriParts.length === 4) && (uriParts[1] === 'bbc'))
-        self.getPodcastBBCEpisodes(uriParts[2], uriParts[3]).then(function (result) {
-          response = result;
-        });
+        response = self.getPodcastBBCEpisodes(uriParts[2], uriParts[3]);
       else {
         return defer.reject(new Error());
       }
