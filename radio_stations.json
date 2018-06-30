@@ -32,6 +32,10 @@
     "linn": {
       "title": "Linn",
       "uri": "kradio/linn"
+    },
+    "ebs": {
+      "title": "EBS",
+      "uri": "kradio/ebs"
     }
   },
 
@@ -119,6 +123,13 @@
         "title": "SBS Internet Radio",
         "uri": "websbs/2",
         "channel": "RA03"
+      }
+    ],
+    "ebs": [
+      {
+        "title": "EBS book",
+        "uri": "webebs/0",
+        "url": "rtmp://ebsonair.ebs.co.kr/fmradiofamilypc/familypc1m"
       }
     ]
   },
