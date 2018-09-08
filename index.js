@@ -350,25 +350,14 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
   switch (uris[0]) {
     case 'webkbs':
-      var userId = Math.random().toString(36).substring(2, 6) +
-                   Math.random().toString(36).substring(2, 6);
-      query = {
-        id: userId,
-        channel: channel+1
-      };
-      self.getStreamUrl(station, self.baseKbsStreamUrl, query)
+
+      self.baseKbsStreamUrl = "http://pwwwapi.kbs.co.kr/api/v1/landing/live/" + channel;
+      self.getStreamUrl(station, self.baseKbsStreamUrl, null)
         .then(function (responseUrl) {
           if (responseUrl  !== null) {
-            var result = responseUrl.split("\n");
-            var retCode = parseInt(result[0]);
-            var streamUrl;
-            if (retCode === 0)
-              streamUrl = result[1];
-            else {
-              streamUrl = null;
-              self.errorToast(station, 'INCORRECT_RESPONSE');
-            }
+            self.logger.info("explodeUri:"+JSON.stringify(responseUrl));
 
+            var streamUrl = responseUrl.channel_item.service_url;
             response["uri"] = streamUrl;
             response["name"] = self.radioStations.kbs[channel].title;
             response["title"] = self.radioStations.kbs[channel].title;

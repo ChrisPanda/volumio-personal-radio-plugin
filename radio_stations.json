@@ -56,23 +56,23 @@
     "kbs": [
       {
         "title": "KBS1 FM",
-        "uri": "webkbs/0"
+        "uri": "webkbs/24"
       },
       {
         "title": "KBS2 FM",
-        "uri": "webkbs/1"
+        "uri": "webkbs/25"
       },
       {
         "title": "KBS1 Radio",
-        "uri": "webkbs/2"
+        "uri": "webkbs/21"
       },
       {
         "title": "KBS2 Radio",
-        "uri": "webkbs/3"
+        "uri": "webkbs/22"
       },
       {
         "title": "KBS3 Radio",
-        "uri": "webkbs/4"
+        "uri": "webkbs/23"
       },
       {
         "title": "KBS DMB",
@@ -80,11 +80,11 @@
       },
       {
         "title": "KBS UNION",
-        "uri": "webkbs/6"
+        "uri": "webkbs/126"
       },
       {
         "title": "KBS World",
-        "uri": "webkbs/7"
+        "uri": "webkbs/192"
       }
     ],
     "mbc": [
