@@ -350,26 +350,11 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
   switch (uris[0]) {
     case 'webkbs':
-      var userId = Math.random().toString(36).substring(2, 6) +
-                   Math.random().toString(36).substring(2, 6);
-      query = {
-        id: userId,
-        channel: channel+1
-      };
-      self.getStreamUrl(station, self.baseKbsStreamUrl, query)
+      var radioChannel = self.radioStations.kbs[channel].channel;
+      self.getStreamUrl(station, self.baseKbsStreamUrl + radioChannel, "")
         .then(function (responseUrl) {
           if (responseUrl  !== null) {
-            var result = responseUrl.split("\n");
-            var retCode = parseInt(result[0]);
-            var streamUrl;
-            if (retCode === 0)
-              streamUrl = result[1];
-            else {
-              streamUrl = null;
-              self.errorToast(station, 'INCORRECT_RESPONSE');
-            }
-
-            response["uri"] = streamUrl;
+            response["uri"] = responseUrl.channel_item[0].service_url;
             response["name"] = self.radioStations.kbs[channel].title;
             response["title"] = self.radioStations.kbs[channel].title;
           }
@@ -517,13 +502,13 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.radioStations.kbs[2].title =  self.getRadioI18nString('KBS1_RADIO');
   self.radioStations.kbs[3].title =  self.getRadioI18nString('KBS2_RADIO');
   self.radioStations.kbs[4].title =  self.getRadioI18nString('KBS3_RADIO');
-  self.radioStations.kbs[6].title =  self.getRadioI18nString('KBS_UNION');
-  self.radioStations.kbs[7].title =  self.getRadioI18nString('KBS_WORLD');
+  self.radioStations.kbs[5].title =  self.getRadioI18nString('KBS_UNION');
+  self.radioStations.kbs[6].title =  self.getRadioI18nString('KBS_WORLD');
   self.radioStations.mbc[0].title =  self.getRadioI18nString('MBC_STANDARD');
   self.radioStations.mbc[1].title =  self.getRadioI18nString('MBC_FM4U');
   self.radioStations.mbc[2].title =  self.getRadioI18nString('MBC_CHANNEL_M');
-  self.radioStations.sbs[0].title =  self.getRadioI18nString('SBS_POWER_FM');
-  self.radioStations.sbs[1].title =  self.getRadioI18nString('SBS_LOVE_FM');
+  self.radioStations.sbs[0].title =  self.getRadioI18nString('SBS_LOVE_FM');
+  self.radioStations.sbs[1].title =  self.getRadioI18nString('SBS_POWER_FM');
   self.radioStations.sbs[2].title =  self.getRadioI18nString('SBS_INTERNET_RADIO');
 
   // Korean radio streaming server preparing
