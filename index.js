@@ -359,8 +359,8 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             var newUrl =  serverUrl.substring(0, serverUrl.indexOf("play"));
 
             self.getStreamUrl(station, streamingUrl, "")
-            .then(function (response) {
-              var newQuery = response.substring(response.indexOf("chunk"))
+            .then(function (streamBody) {
+              var newQuery = streamBody.substring(streamBody.indexOf("chunk")).replace(/\n|\r/g, "");
 
               response["uri"] = newUrl + newQuery;
               response["name"] = self.radioStations.kbs[channel].title;
