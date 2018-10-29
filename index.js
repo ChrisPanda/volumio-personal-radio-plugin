@@ -353,12 +353,22 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       var radioChannel = self.radioStations.kbs[channel].channel;
       self.getStreamUrl(station, self.baseKbsStreamUrl + radioChannel, "")
         .then(function (responseUrl) {
-          if (responseUrl  !== null) {
-            response["uri"] = responseUrl.channel_item[0].service_url;
-            response["name"] = self.radioStations.kbs[channel].title;
-            response["title"] = self.radioStations.kbs[channel].title;
+          if (responseUrl !== null) {
+            var streamingUrl = responseUrl.channel_item[0].service_url;
+            var serverUrl = streamingUrl.split('?')[0];
+            var newUrl =  serverUrl.substring(0, serverUrl.indexOf("play"));
+
+            self.getStreamUrl(station, streamingUrl, "")
+            .then(function (streamBody) {
+              var newQuery = streamBody.substring(streamBody.indexOf("chunk")).replace(/\n|\r/g, "");
+
+              response["uri"] = newUrl + newQuery;
+              response["name"] = self.radioStations.kbs[channel].title;
+              response["title"] = self.radioStations.kbs[channel].title;
+
+              defer.resolve(response);
+            });
           }
-          defer.resolve(response);
         });
       break;
 
