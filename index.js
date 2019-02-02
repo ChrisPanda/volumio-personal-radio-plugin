@@ -7,6 +7,7 @@ var fs = require('fs-extra');
 var config = require('v-conf');
 var unirest = require('unirest');
 var crypto = require('crypto');
+var cryptoJs = require('crypto-js/sha256');
 
 module.exports = ControllerPersonalRadio;
 
@@ -351,25 +352,30 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   switch (uris[0]) {
     case 'webkbs':
       var radioChannel = self.radioStations.kbs[channel].channel;
-      self.getStreamUrl(station, self.baseKbsStreamUrl + radioChannel, "")
+      self.getStreamUrl(station, self.baseKbsTs, "")
+      .then(function (reqTs) {
+        var _0x4ca7=['base64','baseKbsParam','toString','toUpperCase','from','&reqts=','&authcode='];
+        (function(_0x3f1f48,_0x3bdff5)
+          {
+            var _0x3973a0=function(_0x5ae60c){while(--_0x5ae60c){_0x3f1f48['push'](_0x3f1f48['shift']());}};_0x3973a0(++_0x3bdff5);
+          }(_0x4ca7,0xef)
+        );
+        var _0x40e8=function(_0x25d929,_0x53be57){_0x25d929=_0x25d929-0x0;var _0xdd2eb7=_0x4ca7[_0x25d929];return _0xdd2eb7;};
+        var paramApi=self[_0x40e8('0x0')]+radioChannel;
+        var authCode=cryptoJs(self['basekbsAgent']+reqTs+paramApi)[_0x40e8('0x1')]()[_0x40e8('0x2')]();
+        var apiUrl=Buffer[_0x40e8('0x3')](paramApi+_0x40e8('0x4')+reqTs+_0x40e8('0x5')+authCode)[_0x40e8('0x1')](_0x40e8('0x6'))['replace'](/=/gi,'');
+
+        self.getStreamUrl(station, self.baseKbsStreamUrl + apiUrl, "")
         .then(function (responseUrl) {
           if (responseUrl !== null) {
-            var streamingUrl = responseUrl.channel_item[0].service_url;
-            var serverUrl = streamingUrl.split('?')[0];
-            var newUrl =  serverUrl.substring(0, serverUrl.indexOf("play"));
+            response["uri"] = JSON.parse(responseUrl).real_service_url;
+            response["name"] = self.radioStations.kbs[channel].title;
+            response["title"] = self.radioStations.kbs[channel].title;
 
-            self.getStreamUrl(station, streamingUrl, "")
-            .then(function (streamBody) {
-              var newQuery = streamBody.substring(streamBody.indexOf("chunk")).replace(/\n|\r/g, "");
-
-              response["uri"] = newUrl + newQuery;
-              response["name"] = self.radioStations.kbs[channel].title;
-              response["title"] = self.radioStations.kbs[channel].title;
-
-              defer.resolve(response);
-            });
+            defer.resolve(response);
           }
         });
+      });
       break;
 
     case 'websbs':
@@ -521,6 +527,13 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
     self.sbsKey = (new Buffer(response.stationKey, 'base64')).toString('ascii');
     self.sbsAlgorithm = response.algorithm2;
 
+    self.baseKbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbs);
+    self.baseMbcStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.mbc);
+    self.baseSbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.sbs);
+
+    self.basekbsAgent = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsAgent);
+    self.baseKbsTs = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsTs);
+    self.baseKbsParam = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsParam);
     self.baseKbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbs);
     self.baseMbcStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.mbc);
     self.baseSbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.sbs);
