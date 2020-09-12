@@ -8,6 +8,7 @@ var config = require('v-conf');
 var unirest = require('unirest');
 var crypto = require('crypto');
 var cryptoJs = require('crypto-js/sha256');
+var NanoTimer = require('nanotimer');
 
 module.exports = ControllerPersonalRadio;
 
@@ -56,6 +57,10 @@ ControllerPersonalRadio.prototype.onStart = function() {
 
 ControllerPersonalRadio.prototype.onStop = function() {
   var self = this;
+
+  if (self.timer) {
+    self.timer.clear();
+  }
 
   return libQ.resolve();
 };
@@ -314,6 +319,11 @@ ControllerPersonalRadio.prototype.stop = function() {
 ControllerPersonalRadio.prototype.pause = function() {
   var self = this;
 
+  // stop timer
+  if (self.timer) {
+    self.timer.clear();
+  }
+
   return self.mpdPlugin.pause().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
         return self.commandRouter.stateMachine.syncState(state, self.serviceName);
@@ -326,10 +336,35 @@ ControllerPersonalRadio.prototype.resume = function() {
 
   return self.mpdPlugin.resume().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
+        //self.setMetadata(metadataUrl);
         return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
 };
+
+ControllerPersonalRadio.prototype.setTimerData = function (station, metadataUrl, remainingTime) {
+  var response = {
+    service: self.serviceName,
+    type: 'track',
+    trackType: self.getRadioI18nString('PLUGIN_NAME'),
+    radioType: station,
+    albumart: '/albumart?sourceicon=music_service/personal_radio/'+station+'.svg'
+  };
+
+  self.getStreamUrl(station, self.baseKbsStreamUrl + metadataUrl, "")
+  .then(function (responseProgram) {
+    var responseJson = JSON.parse(responseProgram);
+    response["name"] = response["name"]+ "(" + responseJson.data[0].program_title + ")"
+    if (responseJson.data[0].relation_image)
+      response["albumart"] = responseJson.data[0].relation_image
+
+    self.timer = new RPTimer(self.setTimerData.bind(self), [station], remainingTime);
+
+  })
+  .catch(function (error) {
+
+  })
+}
 
 ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var self = this;
@@ -351,34 +386,60 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
   switch (uris[0]) {
     case 'webkbs':
+      if (self.timer) {
+        self.timer.clear();
+      }
+
       var radioChannel = self.radioStations.kbs[channel].channel;
       self.getStreamUrl(station, self.baseKbsTs, "")
       .then(function (reqTs) {
-        var _0x4ca7=['base64','baseKbsParam','toString','toUpperCase','from','&reqts=','&authcode='];
-        (function(_0x3f1f48,_0x3bdff5)
-          {
-            var _0x3973a0=function(_0x5ae60c){while(--_0x5ae60c){_0x3f1f48['push'](_0x3f1f48['shift']());}};_0x3973a0(++_0x3bdff5);
-          }(_0x4ca7,0xef)
-        );
-        var _0x40e8=function(_0x25d929,_0x53be57){_0x25d929=_0x25d929-0x0;var _0xdd2eb7=_0x4ca7[_0x25d929];return _0xdd2eb7;};
-        var paramApi=self[_0x40e8('0x0')]+radioChannel;
-        var authCode=cryptoJs(self['basekbsAgent']+reqTs+paramApi)[_0x40e8('0x1')]()[_0x40e8('0x2')]();
-        var apiUrl=Buffer[_0x40e8('0x3')](paramApi+_0x40e8('0x4')+reqTs+_0x40e8('0x5')+authCode)[_0x40e8('0x1')](_0x40e8('0x6'))['replace'](/=/gi,'');
+        var _0x5221=['from','replace','toUpperCase','base64','&reqts=','&authcode=','basekbsAgent','toString','baseKbsParam','baseKbsMeta'];
+        (function(_0x5b4fc3,_0x52215e){
+          var _0x39346b=function(_0x286639){while(--_0x286639){_0x5b4fc3['push'](_0x5b4fc3['shift']());}};_0x39346b(++_0x52215e);}(_0x5221,0x1e3));
+          var _0x3934=function(_0x5b4fc3,_0x52215e){_0x5b4fc3=_0x5b4fc3-0x0;
+          var _0x39346b=_0x5221[_0x5b4fc3];return _0x39346b;
+        };
+        var paramApi=self[_0x3934('0x5')]+radioChannel,metaApi=self[_0x3934('0x6')]+radioChannel,streamUrl=Buffer[_0x3934('0x7')]
+        (paramApi+_0x3934('0x1')+reqTs+_0x3934('0x2')+cryptoJs(self[_0x3934('0x3')]+reqTs+paramApi)
+            [_0x3934('0x4')]()['toUpperCase']())['toString'](_0x3934('0x0'))['replace'](/=/gi,''),metaUrl=Buffer[_0x3934('0x7')]
+        (metaApi+_0x3934('0x1')+reqTs+'&authcode='+cryptoJs(self['basekbsAgent']+reqTs+metaApi)['toString']()[_0x3934('0x9')]())
+            ['toString']('base64')[_0x3934('0x8')](/=/gi,'');
 
-        self.getStreamUrl(station, self.baseKbsStreamUrl + apiUrl, "")
+        self.getStreamUrl(station, self.baseKbsStreamUrl + streamUrl, "")
         .then(function (responseUrl) {
           if (responseUrl !== null) {
             response["uri"] = JSON.parse(responseUrl).real_service_url;
             response["name"] = self.radioStations.kbs[channel].title;
             response["title"] = self.radioStations.kbs[channel].title;
 
-            defer.resolve(response);
+            self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
+            .then(function (responseProgram) {
+              var responseJson = JSON.parse(responseProgram);
+              response["name"] = response["name"]+ "(" + responseJson.data[0].program_title + ")"
+              if (responseJson.data[0].relation_image)
+                response["albumart"] = responseJson.data[0].relation_image
+
+              //self.setMetadata(station, radioChannel, responseJson.data[0].leftTime_sec);
+              //self.timer = new RPTimer(self.setTimerData.bind(self), [station], responseJson.data[0].leftTime_sec);
+              setTimeout(function () {
+                self.logger.info("PERSON_RADIO Timer Called"+responseJson.data[0].leftTime_sec);
+              }, responseJson.data[0].leftTime_sec);
+
+              defer.resolve(response);
+            })
+            .catch(function (error) {
+              defer.resolve(response);
+            })
           }
         });
       });
       break;
 
     case 'websbs':
+      if (self.timer) {
+        self.timer.clear();
+      }
+
       var device;
       if(self.sbsProtocol === true)
         device = 'mobile';
@@ -402,6 +463,10 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'webmbc':
+      if (self.timer) {
+        self.timer.clear();
+      }
+
       var agent, protocol;
       if(self.mbcProtocol === true) {
         agent = 'android';
@@ -429,6 +494,10 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'weblinn':
+      if (self.timer) {
+        self.timer.clear();
+      }
+
       response["uri"] = self.radioStations.linn[channel].url;
       response["name"] = self.radioStations.linn[channel].title;
       defer.resolve(response);
@@ -533,6 +602,7 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
     self.basekbsAgent = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsAgent);
     self.baseKbsTs = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsTs);
     self.baseKbsParam = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsParam);
+    self.baseKbsMeta = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsMeta);
     self.baseKbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbs);
     self.baseMbcStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.mbc);
     self.baseSbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.sbs);
@@ -578,4 +648,25 @@ ControllerPersonalRadio.prototype.errorToast = function (station, msg) {
       self.getRadioI18nString('PLUGIN_NAME'), errorMessage);
 };
 
+function RPTimer(callback, args, delay) {
+  var start, remaining = delay;
 
+  var nanoTimer = new NanoTimer();
+
+  RPTimer.prototype.pause = function () {
+    nanoTimer.clearTimeout();
+    remaining -= new Date() - start;
+  };
+
+  RPTimer.prototype.resume = function () {
+    start = new Date();
+    nanoTimer.clearTimeout();
+    nanoTimer.setTimeout(callback, args, remaining + 'm');
+  };
+
+  RPTimer.prototype.clear = function () {
+    nanoTimer.clearTimeout();
+  };
+
+  this.resume();
+};
