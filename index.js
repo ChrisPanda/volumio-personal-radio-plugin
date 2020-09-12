@@ -20,6 +20,7 @@ function ControllerPersonalRadio(context) {
   self.logger = this.context.logger;
   self.configManager = this.context.configManager;
   self.state = {};
+  self.timer = null;
   self.stateMachine = self.commandRouter.stateMachine;
 
   self.logger.info("ControllerPersonalRadio::constructor");
@@ -342,7 +343,10 @@ ControllerPersonalRadio.prototype.resume = function() {
   });
 };
 
-ControllerPersonalRadio.prototype.setTimerData = function (station, metadataUrl, remainingTime) {
+ControllerPersonalRadio.prototype.setTimerData = function (station, channel, metaUrl) {
+  var self = this;
+  console.log ("ControllerPersonalRadio setTimerData==", station, channel, metaUrl);
+
   var response = {
     service: self.serviceName,
     type: 'track',
@@ -351,18 +355,18 @@ ControllerPersonalRadio.prototype.setTimerData = function (station, metadataUrl,
     albumart: '/albumart?sourceicon=music_service/personal_radio/'+station+'.svg'
   };
 
-  self.getStreamUrl(station, self.baseKbsStreamUrl + metadataUrl, "")
+  self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
   .then(function (responseProgram) {
     var responseJson = JSON.parse(responseProgram);
-    response["name"] = response["name"]+ "(" + responseJson.data[0].program_title + ")"
+    response["name"] = self.radioStations.kbs[channel].title + "(" + responseJson.data[0].program_title + ")"
     if (responseJson.data[0].relation_image)
       response["albumart"] = responseJson.data[0].relation_image
 
-    self.timer = new RPTimer(self.setTimerData.bind(self), [station], remainingTime);
-
+    console.log("ControllerPersonalRadio NEW COVER==", JSON.stringify(response), responseJson.data[0].leftTime_sec)
+    self.timer = new RPTimer(self.setTimerData.bind(self), [station, channel, metaUrl], responseJson.data[0].leftTime_sec);
   })
-  .catch(function (error) {
-
+  .fail(function (error) {
+    self.logger.error("PersonalRadio Cover Timer Error:"+error)
   })
 }
 
@@ -420,14 +424,14 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                 response["albumart"] = responseJson.data[0].relation_image
 
               //self.setMetadata(station, radioChannel, responseJson.data[0].leftTime_sec);
-              //self.timer = new RPTimer(self.setTimerData.bind(self), [station], responseJson.data[0].leftTime_sec);
-              setTimeout(function () {
-                self.logger.info("PERSON_RADIO Timer Called"+responseJson.data[0].leftTime_sec);
-              }, responseJson.data[0].leftTime_sec);
+              self.timer = new RPTimer(self.setTimerData.bind(self), [station, channel, metaUrl], responseJson.data[0].leftTime_sec);
+              //setTimeout(function () {
+                //self.logger.info("PERSON_RADIO Timer Called"+responseJson.data[0].leftTime_sec);
+              //}, responseJson.data[0].leftTime_sec);
 
               defer.resolve(response);
             })
-            .catch(function (error) {
+            .fail(function (error) {
               defer.resolve(response);
             })
           }
@@ -661,7 +665,7 @@ function RPTimer(callback, args, delay) {
   RPTimer.prototype.resume = function () {
     start = new Date();
     nanoTimer.clearTimeout();
-    nanoTimer.setTimeout(callback, args, remaining + 'm');
+    nanoTimer.setTimeout(callback, args, remaining + 's');
   };
 
   RPTimer.prototype.clear = function () {
