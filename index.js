@@ -343,27 +343,25 @@ ControllerPersonalRadio.prototype.resume = function() {
   });
 };
 
-ControllerPersonalRadio.prototype.setTimerData = function (station, channel, metaUrl) {
+ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channel, programCode, metaUrl) {
   var self = this;
-  console.log ("ControllerPersonalRadio setTimerData==", station, channel, metaUrl);
-
-  var response = {
-    service: self.serviceName,
-    type: 'track',
-    trackType: self.getRadioI18nString('PLUGIN_NAME'),
-    radioType: station,
-    albumart: '/albumart?sourceicon=music_service/personal_radio/'+station+'.svg'
-  };
+  console.log ("ControllerPersonalRadio updateRadioProgram==", station, channel, programCode, metaUrl);
 
   self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
   .then(function (responseProgram) {
     var responseJson = JSON.parse(responseProgram);
-    response["name"] = self.radioStations.kbs[channel].title + "(" + responseJson.data[0].program_title + ")"
-    if (responseJson.data[0].relation_image)
-      response["albumart"] = responseJson.data[0].relation_image
+    // check program changing
+    if (programCode === responseJson.data[0].program_code) return;
 
-    console.log("ControllerPersonalRadio NEW COVER==", JSON.stringify(response), responseJson.data[0].leftTime_sec)
-    self.timer = new RPTimer(self.setTimerData.bind(self), [station, channel, metaUrl], responseJson.data[0].leftTime_sec);
+    var vState = self.commandRouter.stateMachine.getState();
+    console.log("RADIO STATE==", JSON.stringify(vState))
+    if (responseJson.data[0].relation_image)
+      vState.albumart = responseJson.data[0].relation_image;
+    vState.name = self.radioStations.kbs[channel].title + "(" + responseJson.data[0].program_title + ")";
+
+    console.log("ControllerPersonalRadio NEW COVER==", JSON.stringify(vState), responseJson.data[0].leftTime_sec);
+    self.commandRouter.servicePushState(vState, self.serviceName);
+    self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, responseJson.data[0].program_code, metaUrl], responseJson.data[0].leftTime_sec);
   })
   .fail(function (error) {
     self.logger.error("PersonalRadio Cover Timer Error:"+error)
@@ -419,16 +417,12 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
             .then(function (responseProgram) {
               var responseJson = JSON.parse(responseProgram);
+              response["duration"] = responseJson.data[0].leftTime_sec;
               response["name"] = response["name"]+ "(" + responseJson.data[0].program_title + ")"
               if (responseJson.data[0].relation_image)
                 response["albumart"] = responseJson.data[0].relation_image
 
-              //self.setMetadata(station, radioChannel, responseJson.data[0].leftTime_sec);
-              self.timer = new RPTimer(self.setTimerData.bind(self), [station, channel, metaUrl], responseJson.data[0].leftTime_sec);
-              //setTimeout(function () {
-                //self.logger.info("PERSON_RADIO Timer Called"+responseJson.data[0].leftTime_sec);
-              //}, responseJson.data[0].leftTime_sec);
-
+              self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, responseJson.data[0].program_code, metaUrl], responseJson.data[0].leftTime_sec);
               defer.resolve(response);
             })
             .fail(function (error) {
