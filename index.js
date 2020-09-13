@@ -9,6 +9,9 @@ var unirest = require('unirest');
 var crypto = require('crypto');
 var cryptoJs = require('crypto-js/sha256');
 var NanoTimer = require('nanotimer');
+var dateFns = require('date-fns');
+var koLocale = require('date-fns/locale/ko');
+var dateFnsTz = require('date-fns-timezone')
 
 module.exports = ControllerPersonalRadio;
 
@@ -350,18 +353,23 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
   self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
   .then(function (responseProgram) {
     var responseJson = JSON.parse(responseProgram);
+    var activeProgram = responseJson.data[0]
     // check program changing
-    if (programCode === responseJson.data[0].program_code) return;
+    //if (programCode === activeProgram.program_code) return;
 
     var vState = self.commandRouter.stateMachine.getState();
     console.log("RADIO STATE==", JSON.stringify(vState))
-    if (responseJson.data[0].relation_image)
-      vState.albumart = responseJson.data[0].relation_image;
-    vState.name = self.radioStations.kbs[channel].title + "(" + responseJson.data[0].program_title + ")";
+    if (activeProgram.relation_image)
+      vState.albumart = activeProgram.relation_image;
 
-    console.log("ControllerPersonalRadio NEW COVER==", JSON.stringify(vState), responseJson.data[0].leftTime_sec);
+    var remainingSeconds = dateFns.differenceInSeconds ( dateFns.parse(activeProgram.end_time, 'HHmmSSSS', new Date(),  {locale: ko}), new Date() );
+    console.log("Personal Radio RemainingTime=", remainingSeconds)
+    vState.duration = remainingSeconds;
+    vState.name = self.radioStations.kbs[channel].title + "(" + activeProgram.program_title + ")";
+
+    console.log("ControllerPersonalRadio NEW COVER==", JSON.stringify(vState), activeProgram.leftTime_sec);
     self.commandRouter.servicePushState(vState, self.serviceName);
-    self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, responseJson.data[0].program_code, metaUrl], responseJson.data[0].leftTime_sec);
+    self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, activeProgram.program_code, metaUrl], remainingSeconds);
   })
   .fail(function (error) {
     self.logger.error("PersonalRadio Cover Timer Error:"+error)
@@ -417,15 +425,25 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
             .then(function (responseProgram) {
               var responseJson = JSON.parse(responseProgram);
-              response["duration"] = responseJson.data[0].leftTime_sec;
-              response["name"] = response["name"]+ "(" + responseJson.data[0].program_title + ")"
-              if (responseJson.data[0].relation_image)
-                response["albumart"] = responseJson.data[0].relation_image
+              var activeProgram = responseJson.data[0]
 
-              self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, responseJson.data[0].program_code, metaUrl], responseJson.data[0].leftTime_sec);
+
+              var zonedDate = dateFnsTz.utcToZonedTime (new Date(), 'Korea/seoul')
+
+              console.log("RADIO DEBUG============", dateFns.parse(activeProgram.end_time, 'HHmmSSSS', new Date() , {locale: koLocale}), new Date().toLocaleDateString(),  dateFns.parse(new Date().toLocaleDateString(), 'YYYY-MM-DD HH:mm:ss', new Date()) );
+              var remainingSeconds = dateFns.differenceInSeconds ( dateFns.parse(activeProgram.end_time, 'HHmmSSSS', new Date(),  {locale: koLocale}), dateFns.parse(new Date().toLocaleDateString(), 'yyyy-MM-DD HH:mm:ss', new Date()) );
+              console.log("Personal Radio remainingSeconds=", remainingSeconds, activeProgram.leftTime_sec )
+              response["duration"] = remainingSeconds;
+
+              response["name"] = response["name"]+ "(" + activeProgram.program_title + ")"
+              if (activeProgram.relation_image)
+                response["albumart"] = activeProgram.relation_image
+
               defer.resolve(response);
+              self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, activeProgram.program_code, metaUrl], remainingSeconds);
             })
             .fail(function (error) {
+              console.error("Personal Radio Error=", error);
               defer.resolve(response);
             })
           }
