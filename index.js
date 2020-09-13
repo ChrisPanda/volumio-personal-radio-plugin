@@ -11,7 +11,7 @@ var cryptoJs = require('crypto-js/sha256');
 var NanoTimer = require('nanotimer');
 var dateFns = require('date-fns');
 var koLocale = require('date-fns/locale/ko');
-var dateFnsTz = require('date-fns-timezone')
+var dateFnsTz = require('date-fns-tz')
 
 module.exports = ControllerPersonalRadio;
 
@@ -354,26 +354,67 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
   .then(function (responseProgram) {
     var responseJson = JSON.parse(responseProgram);
     var activeProgram = responseJson.data[0]
+    var endProgramHour = activeProgram.end_time.substring(0, 2);
+    var endProgramMinute = activeProgram.end_time.substring(2, 2);
+    if (endProgramHour === '24') endProgramHour = '00';
+
     // check program changing
     //if (programCode === activeProgram.program_code) return;
 
     var vState = self.commandRouter.stateMachine.getState();
-    console.log("RADIO STATE==", JSON.stringify(vState))
+    console.log("[ControllerPersonalRadio:updateRadioProgram] RADIO STATE==", JSON.stringify(vState))
     if (activeProgram.relation_image)
       vState.albumart = activeProgram.relation_image;
 
-    var remainingSeconds = dateFns.differenceInSeconds ( dateFns.parse(activeProgram.end_time, 'HHmmSSSS', new Date(),  {locale: ko}), new Date() );
-    console.log("Personal Radio RemainingTime=", remainingSeconds)
+    var zonedDate = dateFnsTz.utcToZonedTime (new Date(), 'Asia/Seoul')
+    console.log("[ControllerPersonalRadio:updateRadioProgram] DEBUG============", activeProgram.end_time, dateFns.parse(endProgramHour+endProgramMinute, 'HHmm', new Date() , {locale: koLocale}),  zonedDate );
+    var remainingSeconds = dateFns.differenceInSeconds ( dateFns.parse(endProgramHour+endProgramMinute, 'HHmm', new Date(),  {locale: koLocale}), zonedDate ) + 20;
+    console.log("[ControllerPersonalRadio:updateRadioProgram] Radio RemainingTime=", remainingSeconds, activeProgram.leftTime_sec)
     vState.duration = remainingSeconds;
     vState.name = self.radioStations.kbs[channel].title + "(" + activeProgram.program_title + ")";
 
-    console.log("ControllerPersonalRadio NEW COVER==", JSON.stringify(vState), activeProgram.leftTime_sec);
+    console.log("ControllerPersonalRadio NEW COVER==", JSON.stringify(vState));
+
+    //reset volumio internal timer
+
+    self.commandRouter.stateMachine.currentSeek = 0;
+    self.commandRouter.stateMachine.playbackStart=Date.now();
+    self.commandRouter.stateMachine.currentSongDuration= remainingSeconds;
+    self.commandRouter.stateMachine.askedForPrefetch=false;
+    self.commandRouter.stateMachine.prefetchDone=false;
+    self.commandRouter.stateMachine.simulateStopStartDone=false;
+
     self.commandRouter.servicePushState(vState, self.serviceName);
     self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, activeProgram.program_code, metaUrl], remainingSeconds);
   })
   .fail(function (error) {
     self.logger.error("PersonalRadio Cover Timer Error:"+error)
   })
+}
+
+ControllerPersonalRadio.prototype.makeFinishTime = function (endTime) {
+  var endProgramHour = Number(end_time.substring(0, 2));
+  var endProgramMinute = end_time.substring(2, 4);
+  var nextDate;
+
+  var zonedDate = dateFnsTz.utcToZonedTime (new Date(), 'Asia/Seoul');
+
+  if (endProgramHour >= 24) {
+    endProgramHour -= 24;
+    nextDate = dateFns.format(dateFns.addDays(new Date(), 1), 'MMdd');
+    dateFns.getHours(zonedDate);
+  }
+  else
+    nextDate = dateFns.format(new Date(), 'MMdd');
+  endProgramHour = endProgramHour.toString().padStart(2, '0');
+
+  console.log("FINISH=======", nextDate+endProgramHour+endProgramMinute);
+
+  console.log("[ControllerPersonalRadio:makeFinishTime] DEBUG============", endTime, dateFns.parse(nextDate+endProgramHour+endProgramMinute, 'MMddHHmm', new Date() , {locale: koLocale}),  zonedDate );
+  var remainingSeconds = dateFns.differenceInSeconds ( dateFns.parse(nextDate+endProgramHour+endProgramMinute, 'MMddHHmm', new Date(),  {locale: koLocale}), zonedDate ) + 20;
+  console.log("[ControllerPersonalRadio:makeFinishTime] Radio remainingSeconds=", remainingSeconds )
+
+  return remainingSeconds;
 }
 
 ControllerPersonalRadio.prototype.explodeUri = function (uri) {
@@ -426,13 +467,22 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             .then(function (responseProgram) {
               var responseJson = JSON.parse(responseProgram);
               var activeProgram = responseJson.data[0]
+              var endProgramHour = Number(activeProgram.end_time.substring(0, 2));
+              var endProgramMinute = activeProgram.end_time.substring(2, 4);
+              var nextDate;
+              if (endProgramHour >= 24) {
+                endProgramHour -= 24;
+                nextDate = dateFns.format(dateFns.addDays(new Date(), 1), 'MMdd');
+              }
+              else
+                nextDate = dateFns.format(new Date(), 'MMdd');
+              endProgramHour = endProgramHour.toString().padStart(2, '0');
 
-
-              var zonedDate = dateFnsTz.utcToZonedTime (new Date(), 'Korea/seoul')
-
-              console.log("RADIO DEBUG============", dateFns.parse(activeProgram.end_time, 'HHmmSSSS', new Date() , {locale: koLocale}), new Date().toLocaleDateString(),  dateFns.parse(new Date().toLocaleDateString(), 'YYYY-MM-DD HH:mm:ss', new Date()) );
-              var remainingSeconds = dateFns.differenceInSeconds ( dateFns.parse(activeProgram.end_time, 'HHmmSSSS', new Date(),  {locale: koLocale}), dateFns.parse(new Date().toLocaleDateString(), 'yyyy-MM-DD HH:mm:ss', new Date()) );
-              console.log("Personal Radio remainingSeconds=", remainingSeconds, activeProgram.leftTime_sec )
+              console.log("FINISH=======", nextDate+endProgramHour+endProgramMinute);
+              var zonedDate = dateFnsTz.utcToZonedTime (new Date(), 'Asia/Seoul')
+              console.log("[ControllerPersonalRadio:explodeUri] DEBUG============", activeProgram.end_time, dateFns.parse(nextDate+endProgramHour+endProgramMinute, 'MMddHHmm', new Date() , {locale: koLocale}),  zonedDate );
+              var remainingSeconds = dateFns.differenceInSeconds ( dateFns.parse(nextDate+endProgramHour+endProgramMinute, 'MMddHHmm', new Date(),  {locale: koLocale}), zonedDate ) + 20;
+              console.log("[ControllerPersonalRadio:explodeUri] Radio remainingSeconds=", remainingSeconds, activeProgram.leftTime_sec )
               response["duration"] = remainingSeconds;
 
               response["name"] = response["name"]+ "(" + activeProgram.program_title + ")"
