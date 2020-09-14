@@ -479,6 +479,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
               response["uri"] = JSON.parse(responseUrl).real_service_url;
               response["name"] = self.radioStations.kbs[channel].title;
               response["title"] = self.radioStations.kbs[channel].title;
+              response["disableUiControls"] = true;
 
               self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
               .then(function (responseProgram) {
