@@ -11,6 +11,9 @@ var cryptoJs = require('crypto-js/sha256');
 var NanoTimer = require('nanotimer');
 var dateGetHours = require('date-fns/getHours');
 var dateFormat = require('date-fns/format');
+var dateAddDays = require('date-fns/addDays');
+var dateParse = require('date-fns/parse');
+var dateDifferenceInSeconds = require('date-fns/differenceInSeconds');
 var utcToZonedTime = require('date-fns-tz/utcToZonedTime')
 var koLocale = require('date-fns/locale/ko');
 
@@ -298,6 +301,10 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
 ControllerPersonalRadio.prototype.seek = function (position) {
   var self = this;
 
+//  return self.mpdPlugin.getState()
+  //.then(function(state) {
+    //return self.pushState(state);
+  //});
   return self.mpdPlugin.seek(position);
 };
 
@@ -338,6 +345,15 @@ ControllerPersonalRadio.prototype.resume = function() {
         return self.commandRouter.stateMachine.syncState(state, self.serviceName);
     });
   });
+};
+
+// Announce updated State
+ControllerPersonalRadio.prototype.pushState = function(state) {
+  var self = this;
+
+  self.commandRouter.pushConsoleMessage('[' + Date.now() + '] ' + 'ControllerPersonalRadio::pushState');
+
+  return self.commandRouter.servicePushState(state, self.serviceName);
 };
 
 ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channel, metaUrl) {
@@ -409,7 +425,7 @@ ControllerPersonalRadio.prototype.makeProgramFinishTime = function (endTime) {
       var hours = dateGetHours(zonedDate)
       // check local afternoon
       if (hours > 12)
-        nextDate = dateFormat(dateFns.addDays(zonedDate, 1), 'MMdd');
+        nextDate = dateFormat(dateAddDays(zonedDate, 1), 'MMdd');
       else
         nextDate = dateFormat(zonedDate, 'MMdd');
     } else
@@ -418,17 +434,17 @@ ControllerPersonalRadio.prototype.makeProgramFinishTime = function (endTime) {
 
     console.log("[ControllerPersonalRadio:makeFinishTime] DEBUG============",
         endTime, nextDate + endProgramHour + endProgramMinute,
-        dateFns.parse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm',
+        dateParse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm',
             new Date(), {locale: koLocale}), zonedDate);
-    var remainingSeconds = dateFns.differenceInSeconds(
-        dateFns.parse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm',
+    var remainingSeconds = dateDifferenceInSeconds(
+        dateParse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm',
             new Date(), {locale: koLocale}), zonedDate) + 20;
     console.log(
         "[ControllerPersonalRadio:makeFinishTime] Radio remainingSeconds=",
         remainingSeconds)
   }
   catch (ex) {
-
+    console.error("[ControllerPersonalRadio:makeFinishTime] Error=", ex);
   }
   return remainingSeconds;
 }
