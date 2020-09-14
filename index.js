@@ -350,6 +350,8 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
 
     var vState = self.commandRouter.stateMachine.getState();
     var queueItem = self.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
+    vState.seek = 0;
+    vState.disableUiControls = true;
 
     if (activeProgram.relation_image) {
       vState.albumart = activeProgram.relation_image;
@@ -380,7 +382,7 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
     console.log("[ControllerPersonalRadio] update Program State==", JSON.stringify(vState));
 
     // reset volumio internal timer
-    self.commandRouter.stateMachine.currentSeek = 0;
+    self.commandRouter.stateMachine.currentSeek = 0;  // reset Volumio timer
     self.commandRouter.stateMachine.playbackStart=Date.now();
     self.commandRouter.stateMachine.askedForPrefetch=false;
     self.commandRouter.stateMachine.prefetchDone=false;
