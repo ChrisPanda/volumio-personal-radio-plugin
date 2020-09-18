@@ -434,7 +434,7 @@ ControllerPersonalRadio.prototype.makeProgramFinishTime = function (endTime) {
       nextDate = dateFormat(zonedDate, 'MMdd');
     endProgramHour = endProgramHour.toString().padStart(2, '0');
 
-    remainingSeconds = dateDifferenceInSeconds(dateParse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm', new Date(), {locale: koLocale}), zonedDate) + 20;
+    remainingSeconds = dateDifferenceInSeconds(dateParse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm', new Date(), {locale: koLocale}), zonedDate) ;
   }
   catch (ex) {
     console.error("[ControllerPersonalRadio::radio program schedule] Error=", ex);
@@ -500,6 +500,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                   self.timer = new RPTimer(self.updateRadioProgram.bind(self),
                       [station, channel, activeProgram.program_code, metaUrl], remainingSeconds);
                   response["duration"] = remainingSeconds;
+                  console.log("[[PROGRAM START =========]", activeProgram.program_code, activeProgram.end_time, remainingSeconds)
                 }
                 if (activeProgram.program_title)
                   response["name"] = response["name"] + "("
