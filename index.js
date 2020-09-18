@@ -299,13 +299,8 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
 };
 
 ControllerPersonalRadio.prototype.seek = function (position) {
-  var self = this;
 
-//  return self.mpdPlugin.getState()
-  //.then(function(state) {
-    //return self.pushState(state);
-  //});
-  return self.mpdPlugin.seek(position);
+  return libQ.resolve();
 };
 
 ControllerPersonalRadio.prototype.stop = function() {
@@ -347,11 +342,8 @@ ControllerPersonalRadio.prototype.resume = function() {
   });
 };
 
-// Announce updated State
 ControllerPersonalRadio.prototype.pushState = function(state) {
   var self = this;
-
-  self.commandRouter.pushConsoleMessage('[' + Date.now() + '] ' + 'ControllerPersonalRadio::pushState');
 
   return self.commandRouter.servicePushState(state, self.serviceName);
 };
@@ -380,7 +372,6 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
       queueItem.duration = remainingSeconds;
       self.commandRouter.stateMachine.currentSongDuration= remainingSeconds;
       self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, metaUrl], remainingSeconds);
-      console.log("[ControllerPersonalRadio] update Program end_time==", remainingSeconds, activeProgram.end_time);
     }
     else {
       vState.duration = 0;
@@ -395,7 +386,6 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
       vState.name = self.radioStations.kbs[channel].title
       queueItem.name = vState.name;
     }
-    console.log("[ControllerPersonalRadio] update Program State==", JSON.stringify(vState));
 
     // reset volumio internal timer
     self.commandRouter.stateMachine.currentSeek = 0;  // reset Volumio timer
@@ -404,7 +394,7 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
     self.commandRouter.stateMachine.prefetchDone=false;
     self.commandRouter.stateMachine.simulateStopStartDone=false;
 
-    self.commandRouter.servicePushState(vState, self.serviceName);
+    self.pushState(vState);
   })
   .fail(function (error) {
     self.logger.error("[ControllerPersonalRadio::updateRadioProgram] Error:"+error)
@@ -412,6 +402,8 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
 }
 
 ControllerPersonalRadio.prototype.makeProgramFinishTime = function (endTime) {
+  var remainingSeconds
+
   try {
     var endProgramHour = Number(endTime.substring(0, 2));
     var endProgramMinute = endTime.substring(2, 4);
@@ -432,19 +424,10 @@ ControllerPersonalRadio.prototype.makeProgramFinishTime = function (endTime) {
       nextDate = dateFormat(zonedDate, 'MMdd');
     endProgramHour = endProgramHour.toString().padStart(2, '0');
 
-    console.log("[ControllerPersonalRadio:makeFinishTime] DEBUG============",
-        endTime, nextDate + endProgramHour + endProgramMinute,
-        dateParse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm',
-            new Date(), {locale: koLocale}), zonedDate);
-    var remainingSeconds = dateDifferenceInSeconds(
-        dateParse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm',
-            new Date(), {locale: koLocale}), zonedDate) + 20;
-    console.log(
-        "[ControllerPersonalRadio:makeFinishTime] Radio remainingSeconds=",
-        remainingSeconds)
+    remainingSeconds = dateDifferenceInSeconds(dateParse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm', new Date(), {locale: koLocale}), zonedDate) + 20;
   }
   catch (ex) {
-    console.error("[ControllerPersonalRadio:makeFinishTime] Error=", ex);
+    console.error("[ControllerPersonalRadio::radio program schedule] Error=", ex);
   }
   return remainingSeconds;
 }
@@ -503,13 +486,9 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                 var activeProgram = responseJson.data[0]
 
                 if (activeProgram.end_time) {
-                  var remainingSeconds = self.makeProgramFinishTime(
-                      activeProgram.end_time)
+                  var remainingSeconds = self.makeProgramFinishTime(activeProgram.end_time)
                   self.timer = new RPTimer(self.updateRadioProgram.bind(self),
                       [station, channel, metaUrl], remainingSeconds);
-                  console.log(
-                      "[ControllerPersonalRadio:explodeUri] Radio remainingSeconds=",
-                      remainingSeconds, activeProgram.leftTime_sec)
                   response["duration"] = remainingSeconds;
                 }
                 if (activeProgram.program_title)
@@ -520,13 +499,13 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                 defer.resolve(response);
               })
               .fail(function (error) {
-                console.error("Personal Radio Error=", error);
+                console.error("[ControllerPersonalRadio:explodeUri] KBS program error=", error);
                 defer.resolve(response);
               })
             }
           }
           catch (ex) {
-            self.logger.error("[ControllerPersonalRadio::KBS explodeUri] Error= ", ex);
+            self.logger.error("[ControllerPersonalRadio::KBS explodeUri] KBS stream error= ", ex);
           }
         });
       });
