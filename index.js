@@ -325,6 +325,8 @@ ControllerPersonalRadio.prototype.stop = function() {
 ControllerPersonalRadio.prototype.pause = function() {
   var self = this;
 
+  self.timer.pause();
+
   return self.mpdPlugin.pause().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
         return self.commandRouter.stateMachine.syncState(state, self.serviceName);
@@ -348,7 +350,7 @@ ControllerPersonalRadio.prototype.pushState = function(state) {
   return self.commandRouter.servicePushState(state, self.serviceName);
 };
 
-ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channel, metaUrl) {
+ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channel, programCode, metaUrl) {
   var self = this;
 
   self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
@@ -361,6 +363,13 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
     vState.seek = 0;
     vState.disableUiControls = true;
 
+    // check program changing
+    if (activeProgram.program_code === programCode) {
+      console.log("[[PROGRAM SAME=========]", programCode)
+      self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, activeProgram.program_code, metaUrl], 10);
+      return
+    }
+
     if (activeProgram.relation_image) {
       vState.albumart = activeProgram.relation_image;
       queueItem.albumart = activeProgram.relation_image;
@@ -368,10 +377,11 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
 
     if (activeProgram.end_time) {
       var remainingSeconds = self.makeProgramFinishTime(activeProgram.end_time)
+      console.log("[[PROGRAM CHANGED  =========]", activeProgram.end_time, remainingSeconds)
       vState.duration = remainingSeconds;
       queueItem.duration = remainingSeconds;
       self.commandRouter.stateMachine.currentSongDuration= remainingSeconds;
-      self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, metaUrl], remainingSeconds);
+      self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, activeProgram.program_code, metaUrl], remainingSeconds);
     }
     else {
       vState.duration = 0;
@@ -488,7 +498,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                 if (activeProgram.end_time) {
                   var remainingSeconds = self.makeProgramFinishTime(activeProgram.end_time)
                   self.timer = new RPTimer(self.updateRadioProgram.bind(self),
-                      [station, channel, metaUrl], remainingSeconds);
+                      [station, channel, activeProgram.program_code, metaUrl], remainingSeconds);
                   response["duration"] = remainingSeconds;
                 }
                 if (activeProgram.program_title)
@@ -720,6 +730,7 @@ function RPTimer(callback, args, delay) {
   RPTimer.prototype.pause = function () {
     nanoTimer.clearTimeout();
     remaining -= new Date() - start;
+    console.log("[RPTIMER PAUSE]==", remaining, start)
   };
 
   RPTimer.prototype.resume = function () {
