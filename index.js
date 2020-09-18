@@ -325,7 +325,9 @@ ControllerPersonalRadio.prototype.stop = function() {
 ControllerPersonalRadio.prototype.pause = function() {
   var self = this;
 
-  self.timer.pause();
+  if (self.timer) {
+    self.timer.pause();
+  }
 
   return self.mpdPlugin.pause().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
@@ -353,6 +355,12 @@ ControllerPersonalRadio.prototype.pushState = function(state) {
 ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channel, programCode, metaUrl) {
   var self = this;
 
+  if (self.timer) {
+    self.timer.clear();
+  }
+
+  console.log("[ControllerPersonalRadio:updateRadioProgram] INIT==", station, channel, programCode);
+
   self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
   .then(function (responseProgram) {
     var responseJson = JSON.parse(responseProgram);
@@ -365,7 +373,7 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
 
     // check program changing
     if (activeProgram.program_code === programCode) {
-      console.log("[[PROGRAM SAME=========]", programCode)
+      console.log("[ControllerPersonalRadio:updateRadioProgram] SAME PROGRAM===", programCode, activeProgram.program_title);
       self.timer = new RPTimer(self.updateRadioProgram.bind(self), [station, channel, activeProgram.program_code, metaUrl], 10);
       return
     }
@@ -377,7 +385,7 @@ ControllerPersonalRadio.prototype.updateRadioProgram = function (station, channe
 
     if (activeProgram.end_time) {
       var remainingSeconds = self.makeProgramFinishTime(activeProgram.end_time)
-      console.log("[[PROGRAM CHANGED  =========]", activeProgram.end_time, remainingSeconds)
+      console.log("ControllerPersonalRadio:updateRadioProgram CHANGED ==", activeProgram.program_title, activeProgram.end_time, remainingSeconds);
       vState.duration = remainingSeconds;
       queueItem.duration = remainingSeconds;
       self.commandRouter.stateMachine.currentSongDuration= remainingSeconds;
@@ -500,7 +508,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                   self.timer = new RPTimer(self.updateRadioProgram.bind(self),
                       [station, channel, activeProgram.program_code, metaUrl], remainingSeconds);
                   response["duration"] = remainingSeconds;
-                  console.log("[[PROGRAM START =========]", activeProgram.program_code, activeProgram.end_time, remainingSeconds)
+                  console.log("[ControllerPersonalRadio:explodeUri] PROGRAM START==", activeProgram.program_code, activeProgram.program_title, activeProgram.end_time, remainingSeconds);
                 }
                 if (activeProgram.program_title)
                   response["name"] = response["name"] + "("
