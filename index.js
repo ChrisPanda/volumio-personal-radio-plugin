@@ -297,7 +297,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
     .then(function () {
       if (track.radioType === 'kbs')
         self.timer = new RPTimer(self.setRadioMetaInfo.bind(self),
-            [self.state.station, self.state.channel, self.state.programCode, self.state.metaUrl],
+            [self.state.station, self.state.channel, self.state.programCode, self.state.metaUrl, true],
             self.state.remainingSeconds
         );
     })
@@ -349,7 +349,17 @@ ControllerPersonalRadio.prototype.resume = function() {
 
   return self.mpdPlugin.resume().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
-        return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+
+      self.commandRouter.stateMachine.syncState(state, self.serviceName);
+      if (self.state.station === 'kbs') {
+        self.setRadioMetaInfo(
+          self.state.station,
+          self.state.channel,
+          self.state.programCode,
+          self.state.metaUrl,
+          true
+        );
+      }
     });
   });
 };
@@ -360,7 +370,7 @@ ControllerPersonalRadio.prototype.pushState = function(state) {
   return self.commandRouter.servicePushState(state, self.serviceName);
 };
 
-ControllerPersonalRadio.prototype.setRadioMetaInfo = function (station, channel, programCode, metaUrl) {
+ControllerPersonalRadio.prototype.setRadioMetaInfo = function (station, channel, programCode, metaUrl, forceUpdate) {
   var self = this;
 
   self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
@@ -374,7 +384,7 @@ ControllerPersonalRadio.prototype.setRadioMetaInfo = function (station, channel,
     vState.disableUiControls = true;
 
     // checking program is changed
-    if (activeProgram.program_code === programCode) {
+    if (!forceUpdate && activeProgram.program_code === programCode) {
       self.metaRetry.count ++;
       if (self.metaRetry.count > self.metaRetry.max) {
         vState.duration = 0;
@@ -384,7 +394,7 @@ ControllerPersonalRadio.prototype.setRadioMetaInfo = function (station, channel,
       }
       else
         self.timer = new RPTimer(self.setRadioMetaInfo.bind(self),
-            [station, channel, programCode, metaUrl], 10
+            [station, channel, programCode, metaUrl, false], 10
         );
       return
     }
@@ -401,7 +411,7 @@ ControllerPersonalRadio.prototype.setRadioMetaInfo = function (station, channel,
       self.commandRouter.stateMachine.currentSongDuration= remainingSeconds;
       self.timer = new RPTimer(
           self.setRadioMetaInfo.bind(self),
-          [station, channel, activeProgram.program_code, metaUrl],
+          [station, channel, activeProgram.program_code, metaUrl, false],
           remainingSeconds
       );
     }
@@ -566,6 +576,9 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             response["name"] = self.radioStations.sbs[channel].title;
             response["title"] = self.radioStations.sbs[channel].title;
           }
+          self.state = {
+            station: station
+          }
           defer.resolve(response);
         });
       break;
@@ -593,6 +606,9 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             response["name"] = self.radioStations.mbc[channel].title;
             response["title"] = self.radioStations.mbc[channel].title;
           }
+          self.state = {
+            station: station
+          }
           defer.resolve(response);
         });
       break;
@@ -600,6 +616,9 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
     case 'weblinn':
       response["uri"] = self.radioStations.linn[channel].url;
       response["name"] = self.radioStations.linn[channel].title;
+      self.state = {
+        station: station
+      }
       defer.resolve(response);
       break;
 
@@ -749,17 +768,11 @@ ControllerPersonalRadio.prototype.errorToast = function (station, msg) {
 };
 
 function RPTimer(callback, args, delay) {
-  var start, remaining = delay;
+  var remaining = delay;
 
   var nanoTimer = new NanoTimer();
 
-  RPTimer.prototype.pause = function () {
-    nanoTimer.clearTimeout();
-    remaining -= new Date() - start;
-  };
-
   RPTimer.prototype.start = function () {
-    start = new Date();
     nanoTimer.clearTimeout();
     nanoTimer.setTimeout(callback, args, remaining + 's');
   };
