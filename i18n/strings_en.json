@@ -27,6 +27,10 @@
     "PROTOCOL_SETUP_GUIDE": "Setup Guide: If you hear some clipping sound from radio plugin, please enable bellowing HTTP option. (default value is enabling HTTP)",
     "SAVE": "Save",
     "SBS_ENABLE_HTTP": "enable SBS HTTP",
-    "MBC_ENABLE_HTTP": "enable MBC HTTP"
+    "MBC_ENABLE_HTTP": "enable MBC HTTP",
+    "SUPPORT": "Support",
+    "SUPPORT_LINK_DESCRIPTION": "Go to the 'Buy Me a Coffee' support site",
+    "SUPPORT_PLUGIN": "Plugin Support",
+    "SUPPORT_DESCRIPTION": "Please support this personal radio plugin. Thanks."
   }
 }

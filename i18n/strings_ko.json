@@ -27,6 +27,10 @@
     "PROTOCOL_SETUP_GUIDE": "설정 가이드: 라디오 플러그인 청취시 끊김현상이 있으면 아래 HTTP를 활성화(On) 하시기 바랍니다. (기본값은 HTTP 활성화입니다) ",
     "SAVE": "저장",
     "SBS_ENABLE_HTTP": "SBS HTTP 활성화",
-    "MBC_ENABLE_HTTP": "MBC HTTP 활성화"
+    "MBC_ENABLE_HTTP": "MBC HTTP 활성화",
+    "SUPPORT": "후원",
+    "SUPPORT_LINK_DESCRIPTION": "'Buy Me a Coffee' 서포트 사이트로 이동하여 후원",
+    "SUPPORT_PLUGIN": "플러그인 후원",
+    "SUPPORT_DESCRIPTION": "개인 라디오 플러그인을 후원하여 주시면 많은 도움이 됩니다. 감사합니다."
   }
 }

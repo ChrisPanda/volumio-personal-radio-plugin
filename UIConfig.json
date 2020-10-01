@@ -35,6 +35,24 @@
           "value": true
         }
       ]
+    },
+    {
+      "id": "section_support",
+      "element": "section",
+      "label": "TRANSLATE.CONFIG.SUPPORT_PLUGIN",
+      "description": "TRANSLATE.CONFIG.SUPPORT_DESCRIPTION",
+      "icon": "fa-life-ring",
+      "content": [
+        {
+          "id": "support",
+          "element": "button",
+          "label": "TRANSLATE.CONFIG.SUPPORT",
+          "description": "TRANSLATE.CONFIG.SUPPORT_LINK_DESCRIPTION",
+          "onClick": {
+            "type": "openUrl",
+            "url": "https://www.buymeacoffee.com/chrispanda"
+          }
+        }]
     }
   ]
 }
