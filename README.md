@@ -10,5 +10,5 @@ Korean Radio Stations(KBS, MBC, SBS) and Linn Radio plugin for Volumio.
 # Support
 If you like this Volumio plugin please support me and enjoy this radio plugin on Volumio. It's a just a cup of coffee.
 
-[![Support](https://img.shields.io/badge/Support-Buy%20Me%20A%20Coffee-orange.svg?style=for-the-badge)](https://buymeacoff.ee/chrispanda)
-[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=for-the-badge)](https://paypal.me/ckchrispanda) 
+ - [![Support](https://img.shields.io/badge/Support-Buy%20Me%20A%20Coffee-orange.svg?style=for-the-badge)](https://buymeacoff.ee/chrispanda)
+ - [![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=for-the-badge)](https://paypal.me/ckchrispanda) 
