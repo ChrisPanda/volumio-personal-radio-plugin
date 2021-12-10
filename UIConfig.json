@@ -44,15 +44,26 @@
       "icon": "fa-life-ring",
       "content": [
         {
-          "id": "support",
+          "id": "support_korean",
           "element": "button",
-          "label": "TRANSLATE.CONFIG.SUPPORT",
-          "description": "TRANSLATE.CONFIG.SUPPORT_LINK_DESCRIPTION",
+          "label": "TRANSLATE.CONFIG.SUPPORT_KOREAN",
+          "description": "TRANSLATE.CONFIG.SUPPORT_KOREAN_LINK_DESCRIPTION",
           "onClick": {
             "type": "openUrl",
-            "url": "https://www.buymeacoffee.com/chrispanda"
+            "url": "https://donaricano.com/creator/chrisong"
           }
-        }]
+        },
+        {
+          "id": "support_korean",
+          "element": "button",
+          "label": "TRANSLATE.CONFIG.SUPPORT_FOREIGNER",
+          "description": "TRANSLATE.CONFIG.SUPPORT_FOREIGNER_LINK_DESCRIPTION",
+          "onClick": {
+            "type": "openUrl",
+            "url": "https://paypal.me/ckchrispanda"
+          }
+        }
+      ]
     }
   ]
 }
