@@ -5,7 +5,6 @@
 var libQ = require('kew');
 var fs = require('fs-extra');
 var config = require('v-conf');
-var unirest = require('unirest');
 var crypto = require('crypto');
 var cryptoJs = require('crypto-js/sha256');
 var NanoTimer = require('nanotimer');
@@ -16,6 +15,7 @@ var dateParse = require('date-fns/parse');
 var dateDifferenceInSeconds = require('date-fns/differenceInSeconds');
 var utcToZonedTime = require('date-fns-tz/utcToZonedTime')
 var koLocale = require('date-fns/locale/ko');
+var https = require('https');
 
 module.exports = ControllerPersonalRadio;
 
@@ -635,26 +635,32 @@ ControllerPersonalRadio.prototype.getSecretKey = function (radioKeyUrl) {
   var self = this;
   var defer = libQ.defer();
 
-  var Request = unirest.get(radioKeyUrl);
-  Request.end (function (response) {
+  https.get(radioKeyUrl, (function (response) {
     if (response.status === 200) {
-      var result = JSON.parse(response.body);
+      let data = '';
+      response.on('data', (chunk) => {
+        data += chunk;
+      });
 
-      if (result !== undefined) {
-        defer.resolve(result);
-      } else {
-        self.commandRouter.pushToastMessage('error',
-            self.getRadioI18nString('PLUGIN_NAME'),
-            self.getRadioI18nString('ERROR_SECRET_KEY'));
+      response.on('end', () => {
+        var result = JSON.parse(data);
 
-        defer.resolve(null);
-      }
+        if (result !== undefined) {
+          defer.resolve(result);
+        } else {
+          self.errorToast(station, 'ERROR_SECRET_KEY_SERVER');
+          defer.resolve(null);
+        }
+      })
     } else {
-      self.commandRouter.pushToastMessage('error',
-          self.getRadioI18nString('PLUGIN_NAME'),
-          self.getRadioI18nString('ERROR_SECRET_KEY_SERVER'));
+      self.errorToast(station, 'ERROR_SECRET_KEY_SERVER');
       defer.resolve(null);
     }
+  }))
+  .on("error", (err) => {
+    self.logger.info('[' + Date.now() + '] ' + '[Personal Radio] Key Error: ' + err.message);
+    self.errorToast(station, 'ERROR_SECRET_KEY_SERVER');
+    defer.resolve(null);
   });
 
   return defer.promise;
@@ -664,17 +670,33 @@ ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) 
   var self = this;
   var defer = libQ.defer();
 
-  var Request = unirest.get(url);
-  Request
-    .query(query)
-    .end(function (response) {
-      if (response.status === 200)
-        defer.resolve(response.body);
-      else {
-        defer.resolve(null);
-        self.errorToast(station, 'ERROR_STREAM_SERVER');
-      }
-    });
+  https.get(url+query, (function (response) {
+    if (response.status === 200) {
+      let data = '';
+      response.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      response.on('end', () => {
+        var result = JSON.parse(data);
+        if (result !== undefined) {
+          defer.resolve(result);
+        } else {
+          self.errorToast(station, 'ERROR_STREAM_SERVER');
+          defer.resolve(null);
+        }
+      })
+    }
+    else {
+      self.errorToast(station, 'ERROR_STREAM_SERVER');
+      defer.resolve(null);
+    }
+  }))
+  .on("error", (err) => {
+    self.logger.info('[' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + err.message);
+    self.errorToast(station, 'ERROR_STREAM_SERVER');
+    defer.resolve(null);
+  });
 
   return defer.promise;
 };
