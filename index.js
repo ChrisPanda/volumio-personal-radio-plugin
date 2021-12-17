@@ -16,6 +16,7 @@ var dateDifferenceInSeconds = require('date-fns/differenceInSeconds');
 var utcToZonedTime = require('date-fns-tz/utcToZonedTime')
 var koLocale = require('date-fns/locale/ko');
 var https = require('https');
+var unirest = require('unirest');
 
 module.exports = ControllerPersonalRadio;
 
@@ -198,7 +199,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
 
   return response
     .fail(function (e) {
-      self.logger.info('[' + Date.now() + '] ' + 'ControllerPersonalRadio::handleBrowseUri failed');
+      self.logger.info('ControllerPersonalRadio:handleBrowseUri [' + Date.now() + '] ' + 'ControllerPersonalRadio::handleBrowseUri failed');
       libQ.reject(new Error());
     });
 };
@@ -635,7 +636,8 @@ ControllerPersonalRadio.prototype.getSecretKey = function (radioKeyUrl) {
   var self = this;
   var defer = libQ.defer();
 
-  https.get(radioKeyUrl, (function (response) {
+  self.logger.info("ControllerPersonalRadio::RADIO_KEY:::"+radioKeyUrl)
+  https.get(radioKeyUrl, (response) => {
     if (response.status === 200) {
       let data = '';
       response.on('data', (chunk) => {
@@ -643,6 +645,8 @@ ControllerPersonalRadio.prototype.getSecretKey = function (radioKeyUrl) {
       });
 
       response.on('end', () => {
+
+        self.logger.info("ControllerPersonalRadio::GET_SECRET:::"+data)
         var result = JSON.parse(data);
 
         if (result !== undefined) {
@@ -656,11 +660,43 @@ ControllerPersonalRadio.prototype.getSecretKey = function (radioKeyUrl) {
       self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
       defer.resolve(null);
     }
-  }))
+  })
   .on("error", (err) => {
-    self.logger.info('[' + Date.now() + '] ' + '[Personal Radio] Key Error: ' + err.message);
+    self.logger.info('ControllerPersonalRadio:getSecretKey [' + Date.now() + '] ' + '[Personal Radio] Key Error: ' + err.message);
     self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
     defer.resolve(null);
+  });
+
+  return defer.promise;
+};
+
+
+ControllerPersonalRadio.prototype.getSecretKeyOld = function (radioKeyUrl) {
+  var self = this;
+  var defer = libQ.defer();
+
+  self.logger.info("ControllerPersonalRadio::RADIO_KEY:::"+radioKeyUrl)
+
+  var Request = unirest.get(radioKeyUrl);
+  Request.end (function (response) {
+    if (response.status === 200) {
+      var result = JSON.parse(response.body);
+
+      if (result !== undefined) {
+        defer.resolve(result);
+      } else {
+        self.commandRouter.pushToastMessage('error',
+            self.getRadioI18nString('PLUGIN_NAME'),
+            self.getRadioI18nString('ERROR_SECRET_KEY'));
+
+        defer.resolve(null);
+      }
+    } else {
+      self.commandRouter.pushToastMessage('error',
+          self.getRadioI18nString('PLUGIN_NAME'),
+          self.getRadioI18nString('ERROR_SECRET_KEY_SERVER'));
+      defer.resolve(null);
+    }
   });
 
   return defer.promise;
@@ -693,7 +729,7 @@ ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) 
     }
   }))
   .on("error", (err) => {
-    self.logger.info('[' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + err.message);
+    self.logger.info('ControllerPersonalRadio:getStreamUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + err.message);
     self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
     defer.resolve(null);
   });
@@ -730,7 +766,8 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.radioStations.sbs[2].title =  self.getRadioI18nString('SBS_INTERNET_RADIO');
 
   // Korean radio streaming server preparing
-  self.getSecretKey(radioResource.encodedRadio.radioKeyUrl).then(function(response) {
+  self.logger.info("ControllerPersonalRadio::radioKeyUrl!!!!!!:::"+radioResource.encodedRadio.radioKeyUrl)
+  self.getSecretKeyOld(radioResource.encodedRadio.radioKeyUrl).then(function(response) {
     var secretKey = response.secretKey;
     var algorithm = response.algorithm;
     self.sbsKey = (new Buffer(response.stationKey, 'base64')).toString('ascii');
@@ -783,6 +820,8 @@ ControllerPersonalRadio.prototype.decodeStreamUrl =
 };
 
 ControllerPersonalRadio.prototype.errorRadioToast = function (station, msg) {
+  var self=this;
+
   var errorMessage = self.getRadioI18nString(msg);
   if (station !== null)
     errorMessage.replace('{0}', station.toUpperCase());
