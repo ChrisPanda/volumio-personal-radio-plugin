@@ -648,18 +648,18 @@ ControllerPersonalRadio.prototype.getSecretKey = function (radioKeyUrl) {
         if (result !== undefined) {
           defer.resolve(result);
         } else {
-          self.errorToast(station, 'ERROR_SECRET_KEY_SERVER');
+          self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
           defer.resolve(null);
         }
       })
     } else {
-      self.errorToast(station, 'ERROR_SECRET_KEY_SERVER');
+      self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
       defer.resolve(null);
     }
   }))
   .on("error", (err) => {
     self.logger.info('[' + Date.now() + '] ' + '[Personal Radio] Key Error: ' + err.message);
-    self.errorToast(station, 'ERROR_SECRET_KEY_SERVER');
+    self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
     defer.resolve(null);
   });
 
@@ -682,19 +682,19 @@ ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) 
         if (result !== undefined) {
           defer.resolve(result);
         } else {
-          self.errorToast(station, 'ERROR_STREAM_SERVER');
+          self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
           defer.resolve(null);
         }
       })
     }
     else {
-      self.errorToast(station, 'ERROR_STREAM_SERVER');
+      self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
       defer.resolve(null);
     }
   }))
   .on("error", (err) => {
     self.logger.info('[' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + err.message);
-    self.errorToast(station, 'ERROR_STREAM_SERVER');
+    self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
     defer.resolve(null);
   });
 
@@ -782,9 +782,10 @@ ControllerPersonalRadio.prototype.decodeStreamUrl =
   return streamUrl;
 };
 
-ControllerPersonalRadio.prototype.errorToast = function (station, msg) {
+ControllerPersonalRadio.prototype.errorRadioToast = function (station, msg) {
   var errorMessage = self.getRadioI18nString(msg);
-  errorMessage.replace('{0}', station.toUpperCase());
+  if (station !== null)
+    errorMessage.replace('{0}', station.toUpperCase());
   self.commandRouter.pushToastMessage('error',
       self.getRadioI18nString('PLUGIN_NAME'), errorMessage);
 };
