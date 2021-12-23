@@ -713,7 +713,7 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.radioStations.sbs[2].title =  self.getRadioI18nString('SBS_INTERNET_RADIO');
 
   // Korean radio streaming server preparing
-  self.getStreamUrl(radioResource.encodedRadio.radioKeyUrl, "").then(function(response) {
+  self.getStreamUrl(null, radioResource.encodedRadio.radioKeyUrl, "").then(function(response) {
     var result = JSON.parse(response);
 
     var secretKey = result.secretKey;
