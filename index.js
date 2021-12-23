@@ -16,7 +16,9 @@ var dateDifferenceInSeconds = require('date-fns/differenceInSeconds');
 var utcToZonedTime = require('date-fns-tz/utcToZonedTime')
 var koLocale = require('date-fns/locale/ko');
 var https = require('https');
-var request = require('request');
+var http = require('http');
+var url = require('url');
+var querystring = require('querystring');
 
 module.exports = ControllerPersonalRadio;
 
@@ -631,69 +633,53 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 };
 
 // Stream and resource functions for Radio -----------------------------------
+var getHttpData = (function() {
+  var adapters = {
+    'http:': http,
+    'https:': https,
+  };
 
-ControllerPersonalRadio.prototype.getSecretKey = function (radioKeyUrl) {
-  var self = this;
-  var defer = libQ.defer();
-
-  https.get(radioKeyUrl, (response) => {
-    if (response.statusCode === 200) {
-      let data = '';
-      response.on('data', (chunk) => {
-        data += chunk;
-      });
-
-      response.on('end', () => {
-        var result = JSON.parse(data);
-
-        if (result !== undefined) {
-          defer.resolve(result);
-        } else {
-          self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
-          defer.resolve(null);
-        }
-      })
-    } else {
-      self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
-      defer.resolve(null);
-    }
-  })
-  .on("error", (err) => {
-    self.logger.info('ControllerPersonalRadio:getSecretKey [' + Date.now() + '] ' + '[Personal Radio] Key Error: ' + err.message);
-    self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
-    defer.resolve(null);
-  });
-
-  return defer.promise;
-};
-
+  return function(inputUrl) {
+    return adapters[url.parse(inputUrl).protocol]
+  }
+}());
 
 ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) {
   var self = this;
   var defer = libQ.defer();
+  var newUrl = url
 
-  request({ url: url, qs: query}, (error, response, body) => {
-    if (error) {
-      self.logger.info('ControllerPersonalRadio:getStreamUrl [' + Date.now() + '] '
-          + '[Personal Radio] Stream Error: ' + err.message);
-      self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
-      defer.resolve(null);
-      return defer.promise;
-    }
+  if (query) {
+    newUrl = newUrl + "?" + querystring.stringify(query)
+  }
 
+  getHttpData(url).get(newUrl, (response) => {
     if (response.statusCode === 200) {
-      if (body !== undefined) {
-        defer.resolve(body);
-      } else {
-        self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
-        defer.resolve(null);
-      }
+      let result = '';
+      response.on('data', (chunk) => {
+        result += chunk;
+      });
+
+      response.on('end', () => {
+        defer.resolve(result);
+      })
     }
     else {
-      self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
+      if (url.parse(newUrl).hostname.startsWith('raw.'))
+        self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
+      else
+        self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
       defer.resolve(null);
     }
   })
+  .on("error", (err) => {
+    self.logger.info('ControllerPersonalRadio:getStreamUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + err.message);
+    if (url.parse(newUrl).hostname.startsWith('raw.'))
+      self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
+    else
+      self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
+    defer.resolve(null);
+  });
 
   return defer.promise;
 };
@@ -727,11 +713,13 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.radioStations.sbs[2].title =  self.getRadioI18nString('SBS_INTERNET_RADIO');
 
   // Korean radio streaming server preparing
-  self.getSecretKey(radioResource.encodedRadio.radioKeyUrl).then(function(response) {
-    var secretKey = response.secretKey;
-    var algorithm = response.algorithm;
-    self.sbsKey = (new Buffer(response.stationKey, 'base64')).toString('ascii');
-    self.sbsAlgorithm = response.algorithm2;
+  self.getStreamUrl(radioResource.encodedRadio.radioKeyUrl, "").then(function(response) {
+    var result = JSON.parse(response);
+
+    var secretKey = result.secretKey;
+    var algorithm = result.algorithm;
+    self.sbsKey = (new Buffer(result.stationKey, 'base64')).toString('ascii');
+    self.sbsAlgorithm = result.algorithm2;
 
     self.baseKbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbs);
     self.baseMbcStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.mbc);
