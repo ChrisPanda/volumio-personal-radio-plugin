@@ -219,7 +219,8 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
         type: 'folder',
         title: self.rootStations[key].title,
         icon: 'fa fa-folder-open-o',
-        uri: self.rootStations[key].uri
+        uri: self.rootStations[key].uri,
+        albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+station+'.png'
       };
       response.navigation.lists[0].items.push(radio);
   }
