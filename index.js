@@ -218,7 +218,6 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
         service: self.serviceName,
         type: 'folder',
         title: self.rootStations[key].title,
-        icon: 'fa fa-folder-open-o',
         uri: self.rootStations[key].uri,
         albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+key+'.png'
       };
@@ -257,7 +256,6 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
       title: radioStation[i].title,
       artist: '',
       album: '',
-      icon: 'fa fa-music',
       uri: radioStation[i].uri,
       albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+station+i+'.png'
     };
