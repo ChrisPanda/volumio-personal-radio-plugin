@@ -220,7 +220,7 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
         title: self.rootStations[key].title,
         icon: 'fa fa-folder-open-o',
         uri: self.rootStations[key].uri,
-        albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+station+'.png'
+        albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+key+'.png'
       };
       response.navigation.lists[0].items.push(radio);
   }
