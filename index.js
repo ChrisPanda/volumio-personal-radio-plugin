@@ -495,7 +495,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       type: 'track',
       trackType: self.getRadioI18nString('PLUGIN_NAME'),
       radioType: station,
-      albumart: '/albumart?sourceicon=music_service/personal_radio/'+station+'.svg'
+      albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+station+channel+'.png'
   };
 
   switch (uris[0]) {
