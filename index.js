@@ -258,7 +258,8 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
       artist: '',
       album: '',
       icon: 'fa fa-music',
-      uri: radioStation[i].uri
+      uri: radioStation[i].uri,
+      albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+station+i+'.png'
     };
     response.navigation.lists[0].items.push(channel);
   }
