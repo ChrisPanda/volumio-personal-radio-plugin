@@ -17,21 +17,21 @@
       "saveButton": {
         "label": "TRANSLATE.CONFIG.SAVE",
         "data": [
-          "sbsProtocol",
-          "mbcProtocol"
+          "sbsDeviceType",
+          "mbcDeviceType"
         ]
       },
       "content": [
         {
-          "id": "sbsProtocol",
+          "id": "sbsDeviceType",
           "element": "switch",
-          "label": "TRANSLATE.CONFIG.SBS_ENABLE_HTTP",
+          "label": "TRANSLATE.CONFIG.SBS_DEVICE_TYPE",
           "value": true
         },
         {
-          "id": "mbcProtocol",
+          "id": "mbcDeviceType",
           "element": "switch",
-          "label": "TRANSLATE.CONFIG.MBC_ENABLE_HTTP",
+          "label": "TRANSLATE.CONFIG.MBC_DEVICE_TYPE",
           "value": true
         }
       ]

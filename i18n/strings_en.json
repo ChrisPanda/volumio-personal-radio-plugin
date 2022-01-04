@@ -24,10 +24,10 @@
   "CONFIG": {
     "TITLE": "Radio Configuration",
     "RADIO_PROTOCOL": "Radio Protocol",
-    "PROTOCOL_SETUP_GUIDE": "Setup Guide: If you hear some clipping sound from radio plugin, please enable bellowing HTTP option. (default value is enabling HTTP)",
+    "PROTOCOL_SETUP_GUIDE": "If your Volumio network connection is wireless and you have problems listening to plugins, please change the device type below.",
     "SAVE": "Save",
-    "SBS_ENABLE_HTTP": "enable SBS HTTP",
-    "MBC_ENABLE_HTTP": "enable MBC HTTP",
+    "SBS_DEVICE_TYPE": "SBS: Device Type(PC)",
+    "MBC_DEVICE_TYPE": "MBC: Device Type(PC)",
     "SUPPORT": "Support",
     "SUPPORT_KOREAN": "Support in Korea (by KakaoPay)",
     "SUPPORT_FOREIGNER": "Support outside Korea (by paypal)",

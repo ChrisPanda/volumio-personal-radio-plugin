@@ -43,8 +43,8 @@ ControllerPersonalRadio.prototype.onVolumioStart = function()
 
   self.configFile=this.commandRouter.pluginManager.getConfigurationFile(this.context,'config.json');
   self.getConf(self.configFile);
-  self.sbsProtocol =  self.config.get('sbsProtocol');
-  self.mbcProtocol =  self.config.get('mbcProtocol');
+  self.sbsDeviceType =  self.config.get('sbsDeviceType');
+  self.mbcDeviceType =  self.config.get('mbcDeviceType');
 
   return libQ.resolve();
 };
@@ -105,8 +105,8 @@ ControllerPersonalRadio.prototype.getUIConfig = function() {
       __dirname + '/UIConfig.json')
   .then(function(uiconf)
   {
-    uiconf.sections[0].content[0].value = self.config.get('sbsProtocol');
-    uiconf.sections[0].content[1].value = self.config.get('mbcProtocol');
+    uiconf.sections[0].content[0].value = self.config.get('sbsDeviceType');
+    uiconf.sections[0].content[1].value = self.config.get('mbcDeviceType');
 
     defer.resolve(uiconf);
   })
@@ -132,15 +132,15 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
   var defer = libQ.defer();
   var configUpdated = false;
 
-  if (self.config.get('sbsProtocol') != data['sbsProtocol']) {
-    self.config.set('sbsProtocol', data['sbsProtocol']);
-    self.sbsProtocol = data['sbsProtocol'];
+  if (self.config.get('sbsDeviceType') != data['sbsDeviceType']) {
+    self.config.set('sbsDeviceType', data['sbsDeviceType']);
+    self.sbsDeviceType = data['sbsDeviceType'];
     configUpdated = true;
   }
 
-  if (self.config.get('mbcProtocol') != data['mbcProtocol']) {
-    self.config.set('mbcProtocol', data['mbcProtocol']);
-    self.mbcProtocol = data['mbcProtocol'];
+  if (self.config.get('mbcDeviceType') != data['mbcDeviceType']) {
+    self.config.set('mbcDeviceType', data['mbcDeviceType']);
+    self.mbcDeviceType = data['mbcDeviceType'];
     configUpdated = true;
   }
 
@@ -209,7 +209,6 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
 ControllerPersonalRadio.prototype.getRootContent = function() {
   var self=this;
   var response;
-  var defer = libQ.defer();
 
   response = self.rootNavigation;
   response.navigation.lists[0].items = [];
@@ -223,15 +222,14 @@ ControllerPersonalRadio.prototype.getRootContent = function() {
       };
       response.navigation.lists[0].items.push(radio);
   }
-  defer.resolve(response);
-  return defer.promise;
+
+  return libQ.resolve(response);
 };
 
 ControllerPersonalRadio.prototype.getRadioContent = function(station) {
   var self=this;
   var response;
   var radioStation;
-  var defer = libQ.defer();
 
   switch (station) {
     case 'kbs':
@@ -261,9 +259,8 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
     };
     response.navigation.lists[0].items.push(channel);
   }
-  defer.resolve(response);
 
-  return defer.promise;
+  return libQ.resolve(response);
 };
 
 ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
@@ -562,10 +559,10 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
     case 'websbs':
       var device;
-      if(self.sbsProtocol === true)
-        device = 'mobile';
-      else
+      if(self.sbsDeviceType === true)
         device = 'pc';
+      else
+        device = 'mobile';
 
       var baseSbsStreamUrl = self.baseSbsStreamUrl + self.radioStations.sbs[channel].channel;
       self.getStreamUrl(station, baseSbsStreamUrl, {device: device})
@@ -588,13 +585,13 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 
     case 'webmbc':
       var agent, protocol;
-      if(self.mbcProtocol === true) {
-        agent = 'android';
-        protocol = 'M3U8';
-      }
-      else {
+      if(self.mbcDeviceType === true) {
         agent = 'pc';
         protocol = 'RTMP';
+      }
+      else {
+        agent = 'android';
+        protocol = 'M3U8';
       }
 
       query = {

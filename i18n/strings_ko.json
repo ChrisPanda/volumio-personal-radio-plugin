@@ -24,10 +24,10 @@
   "CONFIG": {
     "TITLE": "라디오 설정",
     "RADIO_PROTOCOL": "라디오 전송 방식",
-    "PROTOCOL_SETUP_GUIDE": "설정 가이드: 라디오 플러그인 청취시 끊김현상이 있으면 아래 HTTP를 활성화(On) 하시기 바랍니다. (기본값은 HTTP 활성화입니다) ",
+    "PROTOCOL_SETUP_GUIDE": "볼루미오 네트워크 접속환경이 무선이고 플러그인 청취시 문제가 있는 경우에 아래 디바이스 유형을 변경하시기 바랍니다.",
     "SAVE": "저장",
-    "SBS_ENABLE_HTTP": "SBS HTTP 활성화",
-    "MBC_ENABLE_HTTP": "MBC HTTP 활성화",
+    "SBS_DEVICE_TYPE": "SBS: 디바이스 유형(PC)",
+    "MBC_DEVICE_TYPE": "MBC: 디바이스 유형(PC)",
     "SUPPORT_KOREAN": "한국내 후원",
     "SUPPORT_FOREIGNER": "해외 후원",
     "SUPPORT_KOREAN_LINK_DESCRIPTION": "'도네리카노' 후원 사이트로 이동하여 카카오페이로 후원",
