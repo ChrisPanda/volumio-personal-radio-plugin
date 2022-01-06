@@ -2,23 +2,24 @@
 
 // This Volumio plugin provides Korean radios (SBS, KBS, MBC) and Linn radio.
 
-var libQ = require('kew');
-var fs = require('fs-extra');
-var config = require('v-conf');
-var crypto = require('crypto');
-var cryptoJs = require('crypto-js/sha256');
-var NanoTimer = require('nanotimer');
-var dateGetHours = require('date-fns/getHours');
-var dateFormat = require('date-fns/format');
-var dateAddDays = require('date-fns/addDays');
-var dateParse = require('date-fns/parse');
-var dateDifferenceInSeconds = require('date-fns/differenceInSeconds');
-var utcToZonedTime = require('date-fns-tz/utcToZonedTime')
-var koLocale = require('date-fns/locale/ko');
-var https = require('https');
-var http = require('http');
-var url = require('url');
-var querystring = require('querystring');
+const libQ = require('kew');
+const fs = require('fs-extra');
+const config = require('v-conf');
+const crypto = require('crypto');
+const cryptoJs = require('crypto-js/sha256');
+const NanoTimer = require('nanotimer');
+const dateGetHours = require('date-fns/getHours');
+const dateFormat = require('date-fns/format');
+const dateAddDays = require('date-fns/addDays');
+const dateParse = require('date-fns/parse');
+const dateDifferenceInSeconds = require('date-fns/differenceInSeconds');
+const utcToZonedTime = require('date-fns-tz/utcToZonedTime')
+const koLocale = require('date-fns/locale/ko');
+const https = require('https');
+const http = require('http');
+const urlModule = require('url');
+const querystring = require('querystring');
+const fetch = require('node-fetch')
 
 module.exports = ControllerPersonalRadio;
 
@@ -637,11 +638,11 @@ var getHttpData = (function() {
   };
 
   return function(inputUrl) {
-    return adapters[url.parse(inputUrl).protocol]
+    return adapters[urlModule.parse(inputUrl).protocol]
   }
 }());
 
-ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) {
+ControllerPersonalRadio.prototype.getStreamUrl0 = function (station, url, query) {
   var self = this;
   var defer = libQ.defer();
   var newUrl = url
@@ -649,8 +650,21 @@ ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) 
   if (query) {
     newUrl = newUrl + "?" + querystring.stringify(query)
   }
+  const urlObject = urlModule.parse(url);
+  const options = {
+    hostname: urlObject.hostname,
+    port: urlObject.port,
+    path: query ? newUrl : urlObject.pathname,
+    headers: {
+      'Accept': '*/*',
+      'Proxy-Connection': 'keep-alive',
+      'Cache-Control': 'max-age=0',
+      'User-Agent': 'Mozilla/5.0'
+    }
+  };
+  console.log("=====================STREAM URL=======", options);
 
-  getHttpData(url).get(newUrl, (response) => {
+  getHttpData(url).get(options, (response) => {
     if (response.statusCode === 200) {
       let result = '';
       response.on('data', (chunk) => {
@@ -662,7 +676,7 @@ ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) 
       })
     }
     else {
-      if (url.parse(newUrl).hostname.startsWith('raw.'))
+      if (urlModule.parse(newUrl).hostname.startsWith('raw.'))
         self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
       else
         self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
@@ -671,7 +685,7 @@ ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) 
   })
   .on("error", (err) => {
     self.logger.info('ControllerPersonalRadio:getStreamUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + err.message);
-    if (url.parse(newUrl).hostname.startsWith('raw.'))
+    if (urlModule.parse(url).hostname.startsWith('raw.'))
       self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
     else
       self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
@@ -680,6 +694,42 @@ ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) 
 
   return defer.promise;
 };
+
+ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) {
+  var self = this;
+  var defer = libQ.defer();
+  var newUrl = url
+
+  if (query) {
+    newUrl = newUrl + "?" + querystring.stringify(query)
+  }
+
+  const options = {
+    headers: {
+      'Accept': '*/*',
+      'User-Agent': 'Mozilla/5.0'
+    },
+    method: 'GET',
+    credentials: 'same-origin'
+  };
+
+  fetch(newUrl, options)
+  .then((response) => {
+    console.log("FETCH STREAM RESPONSE===", response);
+    defer.resolve(response);
+  })
+  .catch((error) => {
+    if (urlModule.parse(newUrl).hostname.startsWith('raw.'))
+      self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
+    else
+      self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
+
+    self.logger.info('ControllerPersonalRadio:getStreamUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + error.message);
+    defer.reject(null);
+  })
+
+  return defer.promise;
+}
 
 ControllerPersonalRadio.prototype.addRadioResource = function() {
   var self=this;

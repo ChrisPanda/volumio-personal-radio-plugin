@@ -3,11 +3,11 @@
     "type": "boolean",
     "value": false
   },
-  "sbsProtocol": {
+  "sbsDeviceType": {
     "type": "boolean",
     "value": "true"
   },
-  "mbcProtocol": {
+  "mbcDeviceType": {
     "type": "boolean",
     "value": "true"
   }
