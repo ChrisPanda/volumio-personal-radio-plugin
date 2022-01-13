@@ -24,7 +24,7 @@ const fetch = require('node-fetch')
 module.exports = ControllerPersonalRadio;
 
 function ControllerPersonalRadio(context) {
-	var self = this;
+  var self = this;
 
   self.context = context;
   self.commandRouter = this.context.coreCommand;
@@ -133,13 +133,13 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
   var defer = libQ.defer();
   var configUpdated = false;
 
-  if (self.config.get('sbsDeviceType') != data['sbsDeviceType']) {
+  if (self.config.get('sbsDeviceType') !== data['sbsDeviceType']) {
     self.config.set('sbsDeviceType', data['sbsDeviceType']);
     self.sbsDeviceType = data['sbsDeviceType'];
     configUpdated = true;
   }
 
-  if (self.config.get('mbcDeviceType') != data['mbcDeviceType']) {
+  if (self.config.get('mbcDeviceType') !== data['mbcDeviceType']) {
     self.config.set('mbcDeviceType', data['mbcDeviceType']);
     self.mbcDeviceType = data['mbcDeviceType'];
     configUpdated = true;
@@ -267,8 +267,6 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
 ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
   var self = this;
   var defer = libQ.defer();
-
-  console.log("[[[[[[[[[[[[[clearAddPlayTrack==========", track);
 
   return self.mpdPlugin.sendMpdCommand('stop', [])
     .then(function() {
@@ -530,7 +528,6 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
               response["uri"] = uri;
               response["realUri"] = JSON.parse(responseUrl).real_service_url;
               response["name"] = self.radioStations.kbs[channel].title;
-              //response["title"] = self.radioStations.kbs[channel].title;
               response["disableUiControls"] = true;
 
               self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
@@ -574,9 +571,9 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
     case 'websbs':
       var device;
       if(self.sbsDeviceType === true)
-        device = 'pc';
-      else
         device = 'mobile';
+      else
+        device = 'pc';
 
       var baseSbsStreamUrl = self.baseSbsStreamUrl + self.radioStations.sbs[channel].channel;
       self.getStreamUrl(station, baseSbsStreamUrl, {device: device})
@@ -589,7 +586,6 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             response["uri"] = uri;
             response["realUri"] = streamUrl;
             response["name"] = self.radioStations.sbs[channel].title;
-            //response["title"] = self.radioStations.sbs[channel].title;
           }
           self.state = {
             station: station
@@ -602,12 +598,12 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
     case 'webmbc':
       var agent, protocol;
       if(self.mbcDeviceType === true) {
-        agent = 'pc';
-        protocol = 'RTMP';
-      }
-      else {
         agent = 'android';
         protocol = 'M3U8';
+      }
+      else {
+        agent = 'pc';
+        protocol = 'RTMP';
       }
 
       query = {
@@ -621,7 +617,6 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             response["uri"] = uri;
             response["realUri"] = responseUrl;
             response["name"] = self.radioStations.mbc[channel].title;
-            //response["title"] = self.radioStations.mbc[channel].title;
           }
           self.state = {
             station: station
@@ -682,7 +677,6 @@ ControllerPersonalRadio.prototype.getStreamUrl0 = function (station, url, query)
       'User-Agent': 'Mozilla/5.0'
     }
   };
-  console.log("=====================STREAM URL=======", options);
 
   getHttpData(url).get(options, (response) => {
     if (response.statusCode === 200) {
