@@ -490,7 +490,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var defer = libQ.defer();
   var uris = uri.split("/");
   var channel = parseInt(uris[1]);
-  var response;
+  var response, responseResult=[];
   var query;
   var station;
 
@@ -551,11 +551,11 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                       + activeProgram.program_title + ")"
                 if (activeProgram.relation_image)
                   response.albumart = activeProgram.relation_image
-                defer.resolve([response]);
+                defer.resolve(responseResult.push(response));
               })
               .fail(function (error) {
                 self.logger.error("[ControllerPersonalRadio:explodeUri] KBS meta data error");
-                defer.resolve([response]);
+                defer.resolve(responseResult.push(response));
               })
             }
           }
@@ -588,7 +588,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
           self.state = {
             station: station
           }
-          defer.resolve([response]);
+          defer.resolve(responseResult.push(response));
         });
       break;
 
@@ -618,7 +618,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
           self.state = {
             station: station
           }
-          defer.resolve([response]);
+          defer.resolve(responseResult.push(response));
         });
       break;
 
@@ -628,11 +628,11 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       self.state = {
         station: station
       }
-      defer.resolve([response]);
+      defer.resolve(responseResult.push(response));
       break;
 
     default:
-      defer.resolve([]);
+      defer.resolve(responseResult.push(response));
   }
 
   return defer.promise;
@@ -722,8 +722,8 @@ ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) 
   };
 
   fetch(newUrl, options)
+  .then((response) => response.text())
   .then((response) => {
-    console.log("FETCH STREAM RESPONSE===", response);
     defer.resolve(response);
   })
   .catch((error) => {
