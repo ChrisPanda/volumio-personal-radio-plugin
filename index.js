@@ -268,12 +268,14 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
   var self = this;
   var defer = libQ.defer();
 
+  console.log("[[[[[[[[[[[[[clearAddPlayTrack==========", track);
+
   return self.mpdPlugin.sendMpdCommand('stop', [])
     .then(function() {
         return self.mpdPlugin.sendMpdCommand('clear', []);
     })
     .then(function() {
-        return self.mpdPlugin.sendMpdCommand('add "'+track.uri+'"',[]);
+        return self.mpdPlugin.sendMpdCommand('add "'+track.realUri+'"',[]);
     })
     .then(function () {
       self.commandRouter.pushToastMessage('info',
@@ -525,9 +527,10 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
         .then(function (responseUrl) {
           try {
             if (responseUrl !== null) {
-              response["uri"] = JSON.parse(responseUrl).real_service_url;
+              response["uri"] = uri;
+              response["realUri"] = JSON.parse(responseUrl).real_service_url;
               response["name"] = self.radioStations.kbs[channel].title;
-              response["title"] = self.radioStations.kbs[channel].title;
+              //response["title"] = self.radioStations.kbs[channel].title;
               response["disableUiControls"] = true;
 
               self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
@@ -550,12 +553,14 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                   response["name"] = response["name"] + "("
                       + activeProgram.program_title + ")"
                 if (activeProgram.relation_image)
-                  response.albumart = activeProgram.relation_image
-                defer.resolve(responseResult.push(response));
+                  response.albumart = activeProgram.relation_image;
+                responseResult.push(response);
+                defer.resolve(responseResult);
               })
               .fail(function (error) {
                 self.logger.error("[ControllerPersonalRadio:explodeUri] KBS meta data error");
-                defer.resolve(responseResult.push(response));
+                responseResult.push(response);
+                defer.resolve(responseResult);
               })
             }
           }
@@ -581,14 +586,16 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
             var streamUrl = decipher.update(responseUrl, 'base64', 'utf8');
             streamUrl += decipher.final('utf8');
 
-            response["uri"] = streamUrl;
+            response["uri"] = uri;
+            response["realUri"] = streamUrl;
             response["name"] = self.radioStations.sbs[channel].title;
-            response["title"] = self.radioStations.sbs[channel].title;
+            //response["title"] = self.radioStations.sbs[channel].title;
           }
           self.state = {
             station: station
           }
-          defer.resolve(responseResult.push(response));
+          responseResult.push(response);
+          defer.resolve(responseResult);
         });
       break;
 
@@ -611,28 +618,33 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       self.getStreamUrl(station, self.baseMbcStreamUrl, query)
         .then(function (responseUrl) {
           if (responseUrl  !== null) {
-            response["uri"] = responseUrl;
+            response["uri"] = uri;
+            response["realUri"] = responseUrl;
             response["name"] = self.radioStations.mbc[channel].title;
-            response["title"] = self.radioStations.mbc[channel].title;
+            //response["title"] = self.radioStations.mbc[channel].title;
           }
           self.state = {
             station: station
           }
-          defer.resolve(responseResult.push(response));
+          responseResult.push(response);
+          defer.resolve(responseResult);
         });
       break;
 
     case 'weblinn':
-      response["uri"] = self.radioStations.linn[channel].url;
+      response["uri"] = uri;
+      response["realUri"] = self.radioStations.linn[channel].url;
       response["name"] = self.radioStations.linn[channel].title;
       self.state = {
         station: station
       }
-      defer.resolve(responseResult.push(response));
+      responseResult.push(response);
+      defer.resolve(responseResult);
       break;
 
     default:
-      defer.resolve(responseResult.push(response));
+      responseResult.push(response);
+      defer.resolve(responseResult);
   }
 
   return defer.promise;
