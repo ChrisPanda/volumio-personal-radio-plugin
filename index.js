@@ -281,6 +281,13 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
 
       return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
+
+        self.commandRouter.checkFavourites({uri: track.uri}).then(function(favouriteStatus) {
+          self.commandRouter.emitFavourites(
+              {service: self.service, uri: track.uri, favourite: favouriteStatus.favourite}
+          );
+        })
+
         switch (track.radioType) {
           case 'kbs':
           case 'sbs':
@@ -487,6 +494,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var query;
   var station;
 
+  // radio_station/channel
   station = uris[0].substring(3);
   response = {
       service: self.serviceName,
@@ -543,11 +551,11 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                       + activeProgram.program_title + ")"
                 if (activeProgram.relation_image)
                   response.albumart = activeProgram.relation_image
-                defer.resolve(response);
+                defer.resolve([response]);
               })
               .fail(function (error) {
                 self.logger.error("[ControllerPersonalRadio:explodeUri] KBS meta data error");
-                defer.resolve(response);
+                defer.resolve([response]);
               })
             }
           }
@@ -580,7 +588,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
           self.state = {
             station: station
           }
-          defer.resolve(response);
+          defer.resolve([response]);
         });
       break;
 
@@ -610,7 +618,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
           self.state = {
             station: station
           }
-          defer.resolve(response);
+          defer.resolve([response]);
         });
       break;
 
@@ -620,11 +628,11 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       self.state = {
         station: station
       }
-      defer.resolve(response);
+      defer.resolve([response]);
       break;
 
     default:
-      defer.resolve();
+      defer.resolve([]);
   }
 
   return defer.promise;
