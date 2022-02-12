@@ -45,7 +45,6 @@ ControllerPersonalRadio.prototype.onVolumioStart = function()
   self.configFile=this.commandRouter.pluginManager.getConfigurationFile(this.context,'config.json');
   self.getConf(self.configFile);
   self.sbsDeviceType =  self.config.get('sbsDeviceType');
-  self.mbcDeviceType =  self.config.get('mbcDeviceType');
 
   return libQ.resolve();
 };
@@ -107,7 +106,6 @@ ControllerPersonalRadio.prototype.getUIConfig = function() {
   .then(function(uiconf)
   {
     uiconf.sections[0].content[0].value = self.config.get('sbsDeviceType');
-    uiconf.sections[0].content[1].value = self.config.get('mbcDeviceType');
 
     defer.resolve(uiconf);
   })
@@ -136,12 +134,6 @@ ControllerPersonalRadio.prototype.updateConfig = function (data) {
   if (self.config.get('sbsDeviceType') !== data['sbsDeviceType']) {
     self.config.set('sbsDeviceType', data['sbsDeviceType']);
     self.sbsDeviceType = data['sbsDeviceType'];
-    configUpdated = true;
-  }
-
-  if (self.config.get('mbcDeviceType') !== data['mbcDeviceType']) {
-    self.config.set('mbcDeviceType', data['mbcDeviceType']);
-    self.mbcDeviceType = data['mbcDeviceType'];
     configUpdated = true;
   }
 
@@ -596,20 +588,11 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'webmbc':
-      var agent, protocol;
-      if(self.mbcDeviceType === true) {
-        agent = 'android';
-        protocol = 'M3U8';
-      }
-      else {
-        agent = 'pc';
-        protocol = 'RTMP';
-      }
-
       query = {
         channel: self.radioStations.mbc[channel].channel,
-        agent: agent,
-        protocol: protocol
+        agent: "webapp",
+        protocol: "M3U8",
+        nocash: Math.random()
       };
       self.getStreamUrl(station, self.baseMbcStreamUrl, query)
         .then(function (responseUrl) {
@@ -790,9 +773,6 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
     self.baseKbsTs = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsTs);
     self.baseKbsParam = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsParam);
     self.baseKbsMeta = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsMeta);
-    self.baseKbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbs);
-    self.baseMbcStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.mbc);
-    self.baseSbsStreamUrl = self.decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.sbs);
   });
 };
 
