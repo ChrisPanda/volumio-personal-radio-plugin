@@ -285,6 +285,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
           case 'sbs':
           case 'mbc':
             return self.mpdPlugin.getState().then(function (state) {
+                state.name =  state.name + "(" + state.program + ")"
                 return self.commandRouter.stateMachine.syncState(state, self.serviceName);
             });
             break;
@@ -373,7 +374,7 @@ ControllerPersonalRadio.prototype.pushState = function(state) {
 ControllerPersonalRadio.prototype.setRadioMetaInfo = function (station, channel, programCode, metaUrl, forceUpdate) {
   var self = this;
 
-  self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
+  self.fetchRadioUrl(station, self.baseKbsStreamUrl + metaUrl, "")
   .then(function (responseProgram) {
     var responseJson = JSON.parse(responseProgram);
     var activeProgram = responseJson.data[0]
@@ -499,7 +500,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   switch (uris[0]) {
     case 'webkbs':
       var radioChannel = self.radioStations.kbs[channel].channel;
-      self.getStreamUrl(station, self.baseKbsTs, "")
+      self.fetchRadioUrl(station, self.baseKbsTs, "")
       .then(function (reqTs) {
         var _0x5221=['from','replace','toUpperCase','base64','&reqts=','&authcode=','basekbsAgent','toString','baseKbsParam','baseKbsMeta'];
         (function(_0x5b4fc3,_0x52215e){
@@ -513,7 +514,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
         (metaApi+_0x3934('0x1')+reqTs+'&authcode='+cryptoJs(self['basekbsAgent']+reqTs+metaApi)['toString']()[_0x3934('0x9')]())
             ['toString']('base64')[_0x3934('0x8')](/=/gi,'');
 
-        self.getStreamUrl(station, self.baseKbsStreamUrl + streamUrl, "")
+        self.fetchRadioUrl(station, self.baseKbsStreamUrl + streamUrl, "")
         .then(function (responseUrl) {
           try {
             if (responseUrl !== null) {
@@ -522,7 +523,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
               response["name"] = self.radioStations.kbs[channel].title;
               response["disableUiControls"] = true;
 
-              self.getStreamUrl(station, self.baseKbsStreamUrl + metaUrl, "")
+              self.fetchRadioUrl(station, self.baseKbsStreamUrl + metaUrl, "")
               .then(function (responseProgram) {
                 var responseJson = JSON.parse(responseProgram);
                 var activeProgram = responseJson.data[0]
@@ -539,8 +540,9 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                   }
                 }
                 if (activeProgram.program_title)
-                  response["name"] = response["name"] + "("
-                      + activeProgram.program_title + ")"
+                  //response["name"] = response["name"] + "("
+                  //    + activeProgram.program_title + ")"
+                  response["program"] = activeProgram.program_title
                 if (activeProgram.relation_image)
                   response.albumart = activeProgram.relation_image;
                 responseResult.push(response);
@@ -568,7 +570,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
         device = 'pc';
 
       var baseSbsStreamUrl = self.baseSbsStreamUrl + self.radioStations.sbs[channel].channel;
-      self.getStreamUrl(station, baseSbsStreamUrl, {device: device})
+      self.fetchRadioUrl(station, baseSbsStreamUrl, {device: device})
         .then(function (responseUrl) {
           if (responseUrl  !== null) {
             var decipher = crypto.createDecipheriv(self.sbsAlgorithm, self.sbsKey, "");
@@ -594,7 +596,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
         protocol: "M3U8",
         nocash: Math.random()
       };
-      self.getStreamUrl(station, self.baseMbcStreamUrl, query)
+      self.fetchRadioUrl(station, self.baseMbcStreamUrl, query)
         .then(function (responseUrl) {
           if (responseUrl  !== null) {
             response["uri"] = uri;
@@ -640,7 +642,7 @@ var getHttpData = (function() {
   }
 }());
 
-ControllerPersonalRadio.prototype.getStreamUrl0 = function (station, url, query) {
+ControllerPersonalRadio.prototype.fetchRadioUrl0 = function (station, url, query) {
   var self = this;
   var defer = libQ.defer();
   var newUrl = url
@@ -681,7 +683,7 @@ ControllerPersonalRadio.prototype.getStreamUrl0 = function (station, url, query)
     }
   })
   .on("error", (err) => {
-    self.logger.info('ControllerPersonalRadio:getStreamUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + err.message);
+    self.logger.info('ControllerPersonalRadio:fetchRadioUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + err.message);
     if (urlModule.parse(url).hostname.startsWith('raw.'))
       self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
     else
@@ -692,7 +694,7 @@ ControllerPersonalRadio.prototype.getStreamUrl0 = function (station, url, query)
   return defer.promise;
 };
 
-ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) {
+ControllerPersonalRadio.prototype.fetchRadioUrl = function (station, url, query) {
   var self = this;
   var defer = libQ.defer();
   var newUrl = url
@@ -721,7 +723,7 @@ ControllerPersonalRadio.prototype.getStreamUrl = function (station, url, query) 
     else
       self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
 
-    self.logger.info('ControllerPersonalRadio:getStreamUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + error.message);
+    self.logger.info('ControllerPersonalRadio:fetchRadioUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + error.message);
     defer.reject(null);
   })
 
@@ -757,7 +759,7 @@ ControllerPersonalRadio.prototype.addRadioResource = function() {
   self.radioStations.sbs[2].title =  self.getRadioI18nString('SBS_INTERNET_RADIO');
 
   // Korean radio streaming server preparing
-  self.getStreamUrl(null, radioResource.encodedRadio.radioKeyUrl, "").then(function(response) {
+  self.fetchRadioUrl(null, radioResource.encodedRadio.radioKeyUrl, "").then(function(response) {
     var result = JSON.parse(response);
 
     var secretKey = result.secretKey;

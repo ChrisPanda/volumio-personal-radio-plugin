@@ -17,8 +17,7 @@
       "saveButton": {
         "label": "TRANSLATE.CONFIG.SAVE",
         "data": [
-          "sbsDeviceType",
-          "mbcDeviceType"
+          "sbsDeviceType"
         ]
       },
       "content": [
@@ -26,12 +25,6 @@
           "id": "sbsDeviceType",
           "element": "switch",
           "label": "TRANSLATE.CONFIG.SBS_DEVICE_TYPE",
-          "value": true
-        },
-        {
-          "id": "mbcDeviceType",
-          "element": "switch",
-          "label": "TRANSLATE.CONFIG.MBC_DEVICE_TYPE",
           "value": true
         }
       ]

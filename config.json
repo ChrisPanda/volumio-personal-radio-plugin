@@ -6,9 +6,5 @@
   "sbsDeviceType": {
     "type": "boolean",
     "value": "true"
-  },
-  "mbcDeviceType": {
-    "type": "boolean",
-    "value": "true"
   }
 }
