@@ -483,6 +483,7 @@ ControllerPersonalRadio.prototype.makeProgramFinishTime = function (endTime) {
 ControllerPersonalRadio.prototype.showRadioProgram = function (data) {
   var self = this;
   var radioChannel = data['radio_channel'].value;
+  var channelName = data['radio_channel'].label;
   var metaApi = self.baseKbsMeta + radioChannel;
   var station = "kbs";
 
@@ -510,7 +511,7 @@ ControllerPersonalRadio.prototype.showRadioProgram = function (data) {
           })
           result = result + "</tbody></table>"
           var modalData = {
-            title: self.getRadioI18nString('RADIO_PROGRAM'),
+            title: channelName + " " + self.getRadioI18nString('RADIO_PROGRAM'),
             message: result,
             size: 'lg',
             buttons: [{
