@@ -8,7 +8,7 @@
       "element": "section",
       "label": "TRANSLATE.CONFIG.PROGRAM",
       "description": "TRANSLATE.CONFIG.PROGRAM_DESCRIPTION",
-      "icon": "fa-life-cogs",
+      "icon": "fa-info-circle",
       "onSave": {
         "type": "controller",
         "endpoint": "music_service/personal_radio",

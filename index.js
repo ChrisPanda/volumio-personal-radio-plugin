@@ -105,7 +105,7 @@ ControllerPersonalRadio.prototype.getUIConfig = function() {
       __dirname + '/UIConfig.json')
   .then(function(uiconf)
   {
-    uiconf.sections[0].content[0].value = self.config.get('sbsDeviceType');
+    uiconf.sections[1].content[0].value = self.config.get('sbsDeviceType');
 
     defer.resolve(uiconf);
   })
@@ -499,19 +499,19 @@ ControllerPersonalRadio.prototype.showRadioProgram = function (data) {
 
     self.fetchRadioUrl(station, self.baseKbsStreamUrl + metaUrl, "")
         .then(function (responseProgram) {
-          console.log("responseProgram======", responseProgram)
           var responseJson = JSON.parse(responseProgram);
-          var result = []
+          var result = "<table style=\"width: 100%; background-color: black;\"><tbody style=\"height: 300px;display: block;overflow-y: auto;\">"
           responseJson.data.map(item => {
-            var resultItem =
+            var resultItem = "<tr><td>" +
                 item.start_time.substring(0,2) + ":" + item.start_time.substring(2,4) + "~" +
-                item.end_time.substring(0,2) + ":" + item.end_time.substring(2,4) + "  " +
-                item.program_title;
-            result.push(resultItem);
+                item.end_time.substring(0,2) + ":" + item.end_time.substring(2,4) + "<td>" +
+                item.program_title + "</td></tr>";
+            result = result + resultItem;
           })
+          result = result + "</tbody></table>"
           var modalData = {
             title: self.getRadioI18nString('RADIO_PROGRAM'),
-            message: result.join("\n"),
+            message: result,
             size: 'lg',
             buttons: [{
               name: 'Close',
