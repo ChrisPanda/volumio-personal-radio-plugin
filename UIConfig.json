@@ -4,7 +4,41 @@
   },
   "sections": [
     {
-      "id": "quality",
+      "id": "section_program",
+      "element": "section",
+      "label": "TRANSLATE.CONFIG.PROGRAM",
+      "description": "TRANSLATE.CONFIG.PROGRAM_DESCRIPTION",
+      "icon": "fa-life-cogs",
+      "onSave": {
+        "type": "controller",
+        "endpoint": "music_service/personal_radio",
+        "method": "showRadioProgram"
+      },
+      "saveButton": {
+        "label": "TRANSLATE.CONFIG.SAVE_SEARCH_REGION",
+        "data": [
+          "radio_channel"
+        ]
+      },
+      "content": [
+        {
+          "id": "radio_channel",
+          "element": "select",
+          "label": "TRANSLATE.CONFIG.SELECT_RADIO_CHANNEL",
+          "value": { "value": "24", "label": "KBS" },
+          "options": [
+            { "value": "24", "label": "KBS 1FM" },
+            { "value": "25", "label": "KBS 2FM" },
+            { "value": "21", "label": "KBS 1Radio" },
+            { "value": "22", "label": "KBS 2Radio" },
+            { "value": "23", "label": "KBS 3Radio" },
+            { "value": "I92", "label": "KBS World" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "section_device",
       "element": "section",
       "label": "TRANSLATE.CONFIG.RADIO_PROTOCOL",
       "icon": "fa-cogs",

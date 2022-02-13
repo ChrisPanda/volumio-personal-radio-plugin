@@ -273,7 +273,6 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         self.getRadioI18nString('WAIT_FOR_RADIO_CHANNEL'));
 
       return self.mpdPlugin.sendMpdCommand('play', []).then(function () {
-
         self.commandRouter.checkFavourites({uri: track.uri}).then(function(favouriteStatus) {
           self.commandRouter.emitFavourites(
               {service: self.service, uri: track.uri, favourite: favouriteStatus.favourite}
@@ -285,8 +284,11 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
           case 'sbs':
           case 'mbc':
             return self.mpdPlugin.getState().then(function (state) {
-                state.name =  state.name + "(" + state.program + ")"
-                return self.commandRouter.stateMachine.syncState(state, self.serviceName);
+              if (state && track.radioType === 'kbs') {
+                var queueItem = self.commandRouter.stateMachine.playQueue.arrayQueue[state.position];
+                queueItem.name = track.name + " (" + track.program + ")";
+              }
+              return self.commandRouter.stateMachine.syncState(state, self.serviceName);
             });
             break;
           default:
@@ -476,6 +478,50 @@ ControllerPersonalRadio.prototype.makeProgramFinishTime = function (endTime) {
     self.logger.error("[ControllerPersonalRadio::makeProgramFinishTime] Error");
   }
   return remainingSeconds;
+}
+
+ControllerPersonalRadio.prototype.showRadioProgram = function (data) {
+  var radioChannel = data['radio_channel'].value;
+  var metaApi = self.baseKbsMeta + radioChannel;
+  var station = "kbs";
+
+  self.fetchRadioUrl(station, self.baseKbsTs, "")
+  .then(function (reqTs) {
+    var metaUrl = Buffer
+        .from(metaApi + "&reqts=" + reqTs + "&authcode=" +
+            cryptoJs(self.basekbsAgent + reqTs + metaApi)
+                .toString()
+                .toUpperCase()
+        )
+        .toString('base64')
+        .replace(/=/gi, "");
+
+    self.fetchRadioUrl(station, self.baseKbsStreamUrl + metaUrl, "")
+        .then(function (responseProgram) {
+          console.log("responseProgram======", responseProgram)
+          var responseJson = JSON.parse(responseProgram);
+          var result = []
+          responseJson.data.map(item => {
+            var resultItem =
+                item.start_time.substring(0,1) + ":" + item.start_time.substring(2,3) + "~" +
+                item.end_time.substring(0,1) + ":" + item.end_time.substring(2,3) + "  " +
+                item.program_title;
+            result.push(resultItem);
+          })
+          var modalData = {
+            title: 'Program',
+            message: result.join("\n"),
+            size: 'lg',
+            buttons: [{
+              name: 'Close',
+              class: 'btn btn-info',
+              emit: 'closeModals',
+              payload: ''
+            }]
+          }
+          self.commandRouter.broadcastMessage("openModal", modalData);
+        });
+  });
 }
 
 ControllerPersonalRadio.prototype.explodeUri = function (uri) {
