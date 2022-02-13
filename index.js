@@ -481,6 +481,7 @@ ControllerPersonalRadio.prototype.makeProgramFinishTime = function (endTime) {
 }
 
 ControllerPersonalRadio.prototype.showRadioProgram = function (data) {
+  var self = this;
   var radioChannel = data['radio_channel'].value;
   var metaApi = self.baseKbsMeta + radioChannel;
   var station = "kbs";
@@ -503,13 +504,13 @@ ControllerPersonalRadio.prototype.showRadioProgram = function (data) {
           var result = []
           responseJson.data.map(item => {
             var resultItem =
-                item.start_time.substring(0,1) + ":" + item.start_time.substring(2,3) + "~" +
-                item.end_time.substring(0,1) + ":" + item.end_time.substring(2,3) + "  " +
+                item.start_time.substring(0,2) + ":" + item.start_time.substring(2,4) + "~" +
+                item.end_time.substring(0,2) + ":" + item.end_time.substring(2,4) + "  " +
                 item.program_title;
             result.push(resultItem);
           })
           var modalData = {
-            title: 'Program',
+            title: self.getRadioI18nString('RADIO_PROGRAM'),
             message: result.join("\n"),
             size: 'lg',
             buttons: [{

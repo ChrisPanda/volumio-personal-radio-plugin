@@ -25,7 +25,7 @@
           "id": "radio_channel",
           "element": "select",
           "label": "TRANSLATE.CONFIG.SELECT_RADIO_CHANNEL",
-          "value": { "value": "24", "label": "KBS" },
+          "value": { "value": "24", "label": "KBS 1FM" },
           "options": [
             { "value": "24", "label": "KBS 1FM" },
             { "value": "25", "label": "KBS 2FM" },
@@ -77,7 +77,7 @@
           "description": "TRANSLATE.CONFIG.SUPPORT_KOREAN_LINK_DESCRIPTION",
           "onClick": {
             "type": "openUrl",
-            "url": "https://donaricano.com/creator/chrisong"
+            "url": "https://github.com/ChrisPanda/donation"
           }
         },
         {
