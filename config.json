@@ -2,9 +2,5 @@
   "enabled": {
     "type": "boolean",
     "value": false
-  },
-  "sbsDeviceType": {
-    "type": "boolean",
-    "value": "true"
   }
 }

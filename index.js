@@ -44,7 +44,6 @@ ControllerPersonalRadio.prototype.onVolumioStart = function()
 
   self.configFile=this.commandRouter.pluginManager.getConfigurationFile(this.context,'config.json');
   self.getConf(self.configFile);
-  self.sbsDeviceType =  self.config.get('sbsDeviceType');
 
   return libQ.resolve();
 };
@@ -105,8 +104,6 @@ ControllerPersonalRadio.prototype.getUIConfig = function() {
       __dirname + '/UIConfig.json')
   .then(function(uiconf)
   {
-    uiconf.sections[1].content[0].value = self.config.get('sbsDeviceType');
-
     defer.resolve(uiconf);
   })
   .fail(function()
@@ -124,34 +121,6 @@ ControllerPersonalRadio.prototype.setUIConfig = function(data)
   var uiconf=fs.readJsonSync(__dirname+'/UIConfig.json');
 
   return libQ.resolve();
-};
-
-ControllerPersonalRadio.prototype.updateConfig = function (data) {
-  var self = this;
-  var defer = libQ.defer();
-  var configUpdated = false;
-
-  if (self.config.get('sbsDeviceType') !== data['sbsDeviceType']) {
-    self.config.set('sbsDeviceType', data['sbsDeviceType']);
-    self.sbsDeviceType = data['sbsDeviceType'];
-    configUpdated = true;
-  }
-
-  if(configUpdated) {
-    var responseData = {
-      title: self.getRadioI18nString('PLUGIN_NAME'),
-      message: self.getRadioI18nString('STOP_RADIO_STATION'),
-      size: 'md',
-      buttons: [{
-        name: 'Close',
-        class: 'btn btn-info'
-      }]
-    };
-
-    self.commandRouter.broadcastMessage("openModal", responseData);
-  }
-
-  return defer.promise;
 };
 
 // Playback Controls ---------------------------------------------------------
@@ -486,17 +455,23 @@ ControllerPersonalRadio.prototype.showRadioProgram = function (data) {
   var channelName = data['radio_channel'].label;
   var metaApi = self.baseKbsMeta + radioChannel;
   var station = "kbs";
-
   self.fetchRadioUrl(station, self.baseKbsTs, "")
   .then(function (reqTs) {
-    var metaUrl = Buffer
-        .from(metaApi + "&reqts=" + reqTs + "&authcode=" +
-            cryptoJs(self.basekbsAgent + reqTs + metaApi)
-                .toString()
-                .toUpperCase()
-        )
-        .toString('base64')
-        .replace(/=/gi, "");
+    // kbs program schedule
+    var i=b;
+    function b(c,d){var e=a();return b=function(f,g){f=f-0x138;var h=e[f];return h;},b(c,d);}
+    function a(){
+      var j=['15LIWwkS','16UAVeIp','&reqts=','3bxfVLP','559293EejudT','360616tkTSZB','54607dNTtoi','4161618mOpHkv','20790890WVREXt','2932134OeCvsu','644806HGXerh'];
+      a=function(){return j;};return a();}
+    (function(c,d){var h=b,e=c();while(!![])
+    {try{var f=-parseInt(h(0x13b))/0x1+parseInt(h(0x13f))/0x2*(-parseInt(h(0x138))/0x3)+
+      parseInt(h(0x13a))/0x4*(-parseInt(h(0x140))/0x5)+-
+      parseInt(h(0x13e))/0x6+-parseInt(h(0x139))/0x7*(parseInt(h(0x141))/0x8)+-
+      parseInt(h(0x13c))/0x9+parseInt(h(0x13d))/0xa;if(f===d)break;
+      else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0x4e4d8));
+    var metaUrl=Buffer['from'](metaApi+i(0x142)+reqTs+'&authcode='+
+      cryptoJs(self['basekbsAgent']+reqTs+metaApi)
+      ['toString']()['toUpperCase']())['toString']('base64')['replace'](/=/gi,'');
 
     self.fetchRadioUrl(station, self.baseKbsStreamUrl + metaUrl, "")
         .then(function (responseProgram) {
@@ -588,8 +563,6 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                   }
                 }
                 if (activeProgram.program_title)
-                  //response["name"] = response["name"] + "("
-                  //    + activeProgram.program_title + ")"
                   response["program"] = activeProgram.program_title
                 if (activeProgram.relation_image)
                   response.albumart = activeProgram.relation_image;
@@ -611,14 +584,8 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'websbs':
-      var device;
-      if(self.sbsDeviceType === true)
-        device = 'mobile';
-      else
-        device = 'pc';
-
       var baseSbsStreamUrl = self.baseSbsStreamUrl + self.radioStations.sbs[channel].channel;
-      self.fetchRadioUrl(station, baseSbsStreamUrl, {device: device})
+      self.fetchRadioUrl(station, baseSbsStreamUrl, {device: "mobile"})
         .then(function (responseUrl) {
           if (responseUrl  !== null) {
             var decipher = crypto.createDecipheriv(self.sbsAlgorithm, self.sbsKey, "");
@@ -679,69 +646,6 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
 };
 
 // Stream and resource functions for Radio -----------------------------------
-var getHttpData = (function() {
-  var adapters = {
-    'http:': http,
-    'https:': https,
-  };
-
-  return function(inputUrl) {
-    return adapters[urlModule.parse(inputUrl).protocol]
-  }
-}());
-
-ControllerPersonalRadio.prototype.fetchRadioUrl0 = function (station, url, query) {
-  var self = this;
-  var defer = libQ.defer();
-  var newUrl = url
-
-  if (query) {
-    newUrl = newUrl + "?" + querystring.stringify(query)
-  }
-  const urlObject = urlModule.parse(url);
-  const options = {
-    hostname: urlObject.hostname,
-    port: urlObject.port,
-    path: query ? newUrl : urlObject.pathname,
-    headers: {
-      'Accept': '*/*',
-      'Proxy-Connection': 'keep-alive',
-      'Cache-Control': 'max-age=0',
-      'User-Agent': 'Mozilla/5.0'
-    }
-  };
-
-  getHttpData(url).get(options, (response) => {
-    if (response.statusCode === 200) {
-      let result = '';
-      response.on('data', (chunk) => {
-        result += chunk;
-      });
-
-      response.on('end', () => {
-        defer.resolve(result);
-      })
-    }
-    else {
-      if (urlModule.parse(newUrl).hostname.startsWith('raw.'))
-        self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
-      else
-        self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
-      defer.resolve(null);
-    }
-  })
-  .on("error", (err) => {
-    self.logger.info('ControllerPersonalRadio:fetchRadioUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + err.message);
-    if (urlModule.parse(url).hostname.startsWith('raw.'))
-      self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
-    else
-      self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
-    defer.resolve(null);
-  });
-
-  return defer.promise;
-};
-
 ControllerPersonalRadio.prototype.fetchRadioUrl = function (station, url, query) {
   var self = this;
   var defer = libQ.defer();
