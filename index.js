@@ -476,7 +476,7 @@ ControllerPersonalRadio.prototype.showRadioProgram = function (data) {
     self.fetchRadioUrl(station, self.baseKbsStreamUrl + metaUrl, "")
         .then(function (responseProgram) {
           var responseJson = JSON.parse(responseProgram);
-          var result = "<table style=\"width: 100%; background-color: black;\"><tbody style=\"height: 300px;display: block;overflow-y: auto;\">"
+          var result = "<table><tbody>"
           responseJson.data.map(item => {
             var resultItem = "<tr><td>" +
                 item.start_time.substring(0,2) + ":" + item.start_time.substring(2,4) + "~" +
