@@ -163,7 +163,7 @@ ControllerPersonalRadio.prototype.handleBrowseUri = function (curUri) {
 
   return response
     .fail(function (e) {
-      self.logger.info('ControllerPersonalRadio:handleBrowseUri [' + Date.now() + '] ' + 'ControllerPersonalRadio::handleBrowseUri failed');
+      self.logger.info('ControllerPersonalRadio:handleBrowseUri [' + Date.now() + '] ' + 'ControllerPersonalRadio::handleBrowseUri failed=', e);
       libQ.reject(new Error());
     });
 };
@@ -212,7 +212,7 @@ ControllerPersonalRadio.prototype.getRadioContent = function(station) {
   for (var i in radioStation) {
     var channel = {
       service: self.serviceName,
-      type: 'mywebradio',
+      type: 'song',
       title: radioStation[i].title,
       artist: '',
       album: '',
@@ -254,7 +254,8 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
           case 'mbc':
             return self.mpdPlugin.getState().then(function (state) {
               if (state && track.radioType === 'kbs') {
-                var queueItem = self.commandRouter.stateMachine.playQueue.arrayQueue[state.position];
+                var vState = self.commandRouter.stateMachine.getState();
+                var queueItem = self.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
                 queueItem.name = track.name + " (" + track.program + ")";
               }
               return self.commandRouter.stateMachine.syncState(state, self.serviceName);
@@ -274,6 +275,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
         );
     })
     .fail(function (e) {
+      self.logger.error("[ControllerPersonalRadio::clearAddPlayTrack] Error=", e)
       return defer.reject(new Error());
     });
 };
@@ -411,7 +413,7 @@ ControllerPersonalRadio.prototype.setRadioMetaInfo = function (station, channel,
     self.pushState(vState);
   })
   .fail(function (error) {
-    self.logger.error("[ControllerPersonalRadio::setRadioMetaInfo] Error")
+    self.logger.error("[ControllerPersonalRadio::setRadioMetaInfo] Error=", error)
   })
 }
 
@@ -443,8 +445,8 @@ ControllerPersonalRadio.prototype.makeProgramFinishTime = function (endTime) {
         zonedDate
     ) + 5;
   }
-  catch (ex) {
-    self.logger.error("[ControllerPersonalRadio::makeProgramFinishTime] Error");
+  catch (error) {
+    self.logger.error("[ControllerPersonalRadio::makeProgramFinishTime] Error=", error);
   }
   return remainingSeconds;
 }
@@ -570,14 +572,14 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
                 defer.resolve(responseResult);
               })
               .fail(function (error) {
-                self.logger.error("[ControllerPersonalRadio:explodeUri] KBS meta data error");
+                self.logger.error("[ControllerPersonalRadio:explodeUri] KBS meta data error=", error);
                 responseResult.push(response);
                 defer.resolve(responseResult);
               })
             }
           }
-          catch (ex) {
-            self.logger.error("[ControllerPersonalRadio::KBS explodeUri] KBS stream error");
+          catch (error) {
+            self.logger.error("[ControllerPersonalRadio::KBS explodeUri] KBS stream error=", error);
           }
         });
       });
@@ -675,7 +677,7 @@ ControllerPersonalRadio.prototype.fetchRadioUrl = function (station, url, query)
     else
       self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
 
-    self.logger.info('ControllerPersonalRadio:fetchRadioUrl [' + Date.now() + '] ' + '[Personal Radio] Stream Error: ' + error.message);
+    self.logger.info('ControllerPersonalRadio:fetchRadioUrl Error: ' + error);
     defer.reject(null);
   })
 
