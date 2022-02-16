@@ -7,6 +7,19 @@ Korean Radio Stations(KBS, MBC, SBS) and Linn Radio plugin for Volumio.
 - SBS(Seoul Broadcasting System): commercial broadcaster in Korea
 - Linn: Highest quality web radio that includes radio, classical, jazz chanel stations
 
+## Change log
+### version 1.3.0
+* add KBS radio program ablum image and change the album image automatically during playing
+* add KBS radio program schedule at setup page
+* remove SBC, MBC radio protocol selection at setup page
+
+### version 1.1.4
+* fix KBS radio streaming stop playing irregularly
+
+### version 1.1.2
+* fix tick sound when you hear SBS,MBC radio station
+* add access protocol selection for SBS, MBC station
+
 # Support
 If you like this Volumio plugin please support me and enjoy this radio plugin on Volumio. It's a just a cup of coffee.
 
