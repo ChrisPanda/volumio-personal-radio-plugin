@@ -4,6 +4,7 @@ const path = require('path');
 global.personalRadioRoot = path.resolve(__dirname);
 
 const libQ = require('kew');
+const fs = require('fs-extra');
 const fetch = require('node-fetch')
 const dateGetHours = require('date-fns/getHours');
 const dateFormat = require('date-fns/format');
@@ -26,14 +27,28 @@ function RadioCore() {
     this.metaRetry = { max: 5, count: 0};
     this.timer = null;
     this.rootNavigation = {};
+    this.i18nStrings = {};
+    this.i18nStringsDefaults = {};
+    this.rootStations = {};
+    this.rootNavigation = {};
+    this.radioStations = {};
+    this.sbsKey = {};
+    this.sbsAlgorithm = {};
+    this.baseKbsStreamUrl = {};
+    this.baseMbcStreamUrl = {};
+    this.baseSbsStreamUrl = {};
+    this.basekbsAgent = {};
+    this.baseKbsTs = {};
+    this.baseKbsParam = {};
+    this.baseKbsMeta = {};
 
     const init = function (context) {
-        let self = this
+        let self = this;
         self.context = context;
         self.logger = context.logger;
 
-        loadRadioI18nStrings();
-        addRadioResource();
+        self.loadRadioI18nStrings();
+        self.addRadioResource();
     }
 
     const getRadioI18nString = function (key) {
@@ -116,7 +131,7 @@ function RadioCore() {
                         self.context.pushState(vState);
                     }
                     else
-                        self.timer = new RPTimer(self.setRadioMetaInfo.bind(self),
+                        self.timer = new RPTimer(setRadioMetaInfo.bind(this),
                             [station, channel, programCode, metaUrl, false], 10
                         );
                     return
@@ -133,7 +148,7 @@ function RadioCore() {
                     queueItem.duration = remainingSeconds;
                     self.context.commandRouter.stateMachine.currentSongDuration= remainingSeconds;
                     self.timer = new RPTimer(
-                        self.setRadioMetaInfo.bind(self),
+                        setRadioMetaInfo.bind(this),
                         [station, channel, activeProgram.program_code, metaUrl, false],
                         remainingSeconds
                     );
@@ -263,15 +278,15 @@ function RadioCore() {
     }
 
     const resetRPTimer = function() {
-        let self=this
+        let self=this;
 
-        self.timer = new RPTimer(self.setRadioMetaInfo.bind(self),
-            [self.state.station, self.state.channel, self.state.programCode, self.state.metaUrl, true],
+        self.timer = new RPTimer(setRadioMetaInfo.bind(this),
+            [this.state.station, self.state.channel, self.state.programCode, self.state.metaUrl, true],
             self.state.remainingSeconds
         );
     }
 
-    function loadRadioI18nStrings () {
+    const loadRadioI18nStrings = function () {
         try {
             let language_code = this.context.commandRouter.sharedVars.get('language_code');
             this.i18nStrings=fs.readJsonSync(__dirname+'/i18n/strings_'+language_code+".json");
@@ -291,7 +306,7 @@ function RadioCore() {
         return streamUrl;
     };
 
-    function addRadioResource() {
+    const addRadioResource = function() {
         let self=this;
 
         let radioResource = fs.readJsonSync(__dirname+'/radio_stations.json');
@@ -348,7 +363,9 @@ function RadioCore() {
         toast: toast,
         errorRadioToast: errorRadioToast,
         fetchRadioUrl: fetchRadioUrl,
-        resetRPTimer: resetRPTimer()
+        resetRPTimer: resetRPTimer,
+        loadRadioI18nStrings: loadRadioI18nStrings,
+        addRadioResource: addRadioResource
     }
 
 }
