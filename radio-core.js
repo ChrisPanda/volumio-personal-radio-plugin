@@ -32,15 +32,11 @@ function RadioCore() {
     this.rootStations = {};
     this.rootNavigation = {};
     this.radioStations = {};
-    this.sbsKey = {};
-    this.sbsAlgorithm = {};
     this.baseKbsStreamUrl = {};
     this.baseMbcStreamUrl = {};
     this.baseSbsStreamUrl = {};
-    this.basekbsAgent = {};
-    this.baseKbsTs = {};
-    this.baseKbsParam = {};
-    this.baseKbsMeta = {};
+    this.kbsInfo = {};
+    this.sbsInfo = {};
 
     const init = function (context) {
         let self = this;
@@ -116,8 +112,8 @@ function RadioCore() {
                 let responseJson = JSON.parse(responseProgram);
                 let activeProgram = responseJson.data[0]
 
-                let vState = self.context.commandRouter.stateMachine.getState();
-                let queueItem = self.context.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
+                let vState = self.context.stateMachine.getState();
+                let queueItem = self.context.stateMachine.playQueue.arrayQueue[vState.position];
                 vState.seek = 0;
                 vState.disableUiControls = true;
 
@@ -146,7 +142,7 @@ function RadioCore() {
                     let remainingSeconds = self.makeProgramFinishTime(activeProgram.end_time)
                     vState.duration = remainingSeconds;
                     queueItem.duration = remainingSeconds;
-                    self.context.commandRouter.stateMachine.currentSongDuration= remainingSeconds;
+                    self.context.stateMachine.currentSongDuration= remainingSeconds;
                     self.timer = new RPTimer(
                         setRadioMetaInfo.bind(this),
                         [station, channel, activeProgram.program_code, metaUrl, false],
@@ -168,11 +164,11 @@ function RadioCore() {
                     queueItem.name = vState.name;
                 }
 
-                self.context.commandRouter.stateMachine.currentSeek = 0;  // reset Volumio timer
-                self.context.commandRouter.stateMachine.playbackStart=Date.now();
-                self.context.commandRouter.stateMachine.askedForPrefetch=false;
-                self.context.commandRouter.stateMachine.prefetchDone=false;
-                self.context.commandRouter.stateMachine.simulateStopStartDone=false;
+                self.context.stateMachine.currentSeek = 0;  // reset Volumio timer
+                self.context.stateMachine.playbackStart=Date.now();
+                self.context.stateMachine.askedForPrefetch=false;
+                self.context.stateMachine.prefetchDone=false;
+                self.context.stateMachine.simulateStopStartDone=false;
 
                 self.context.pushState(vState);
             })
@@ -228,26 +224,34 @@ function RadioCore() {
 
     const getRadioProgram = function (radioChannel, channelName) {
         let self = this;
-        let metaApi = self.baseKbsMeta + radioChannel;
+        let metaApi = self.kbsInfo.kbsMeta + radioChannel;
         let station = "kbs";
 
-        self.fetchRadioUrl(station, self.baseKbsTs, "")
+        self.fetchRadioUrl(station, self.kbsInfo.kbsTs, "")
             .then(function (reqTs) {
                 // kbs program schedule
-                let i=b;
-                function b(c,d){var e=a();return b=function(f,g){f=f-0x138;var h=e[f];return h;},b(c,d);}
-                function a(){
-                    var j=['15LIWwkS','16UAVeIp','&reqts=','3bxfVLP','559293EejudT','360616tkTSZB','54607dNTtoi','4161618mOpHkv','20790890WVREXt','2932134OeCvsu','644806HGXerh'];
-                    a=function(){return j;};return a();}
-                (function(c,d){var h=b,e=c();while(!![])
-                {try{var f=-parseInt(h(0x13b))/0x1+parseInt(h(0x13f))/0x2*(-parseInt(h(0x138))/0x3)+
-                    parseInt(h(0x13a))/0x4*(-parseInt(h(0x140))/0x5)+-
-                        parseInt(h(0x13e))/0x6+-parseInt(h(0x139))/0x7*(parseInt(h(0x141))/0x8)+-
-                        parseInt(h(0x13c))/0x9+parseInt(h(0x13d))/0xa;if(f===d)break;
-                else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0x4e4d8));
-                let metaUrl=Buffer['from'](metaApi+i(0x142)+reqTs+'&authcode='+
-                    cryptoJs(self['basekbsAgent']+reqTs+metaApi)
-                        ['toString']()['toUpperCase']())['toString']('base64')['replace'](/=/gi,'');
+                function _0x4b15(){
+                    var _0x622e72=['kbsInfo','&authcode=','30780TFJSCF','4466736LkJTXV','5886yiFFrD','9giLhVb','393456nFMFeG',
+                        '1834875GfsuoU','replace','2450840vgoIih','52MmrUCb','4928UjpxMf','21044SWDnyM','1485GvejIK'];
+                    _0x4b15=function(){return _0x622e72;};return _0x4b15();
+                }
+                var _0x40cd55=_0x5366;(function(_0x1b4a08,_0x42ec4d)
+                {var _0x1fe6ed=_0x5366,_0x20edc6=_0x1b4a08();while(!![]){
+                    try{
+                        var _0x2ada3d=parseInt(_0x1fe6ed(0xfe))/0x1*(-parseInt(_0x1fe6ed(0xfc))/0x2)+
+                        parseInt(_0x1fe6ed(0xf8))/0x3+-parseInt(_0x1fe6ed(0xfb))/0x4+-
+                        parseInt(_0x1fe6ed(0xf1))/0x5*(parseInt(_0x1fe6ed(0xf6))/0x6)+-
+                        parseInt(_0x1fe6ed(0xf9))/0x7+-parseInt(_0x1fe6ed(0xf5))/0x8*(-
+                        parseInt(_0x1fe6ed(0xf7))/0x9)+-parseInt(_0x1fe6ed(0xf4))/0xa*(-
+                        parseInt(_0x1fe6ed(0xfd))/0xb);if(_0x2ada3d===_0x42ec4d)break;
+                        else _0x20edc6['push'](_0x20edc6['shift']());}
+                catch(_0x33cd4a){_0x20edc6['push'](_0x20edc6['shift']());}}}(_0x4b15,0x56b1e));
+                function _0x5366(_0x4b3f23,_0xbd0f08){var _0x4b1594=_0x4b15();
+                    return _0x5366=function(_0x53664f,_0x28f2a8){_0x53664f=_0x53664f-0xf1;
+                        var _0x251ccf=_0x4b1594[_0x53664f];return _0x251ccf;},_0x5366(_0x4b3f23,_0xbd0f08);}
+                var metaUrl=Buffer['from'](metaApi+'&reqts='+reqTs+_0x40cd55(0xf3)+
+                    cryptoJs(self[_0x40cd55(0xf2)]['kbsAgent']+reqTs+metaApi)['toString']()['toUpperCase']())
+                    ['toString']('base64')[_0x40cd55(0xfa)](/=/gi,'');
 
                 self.fetchRadioUrl(station, self.baseKbsStreamUrl + metaUrl, "")
                     .then(function (responseProgram) {
@@ -337,20 +341,23 @@ function RadioCore() {
         // Korean radio streaming server preparing
         self.fetchRadioUrl(null, radioResource.encodedRadio.radioKeyUrl, "").then(function(response) {
             let result = JSON.parse(response);
-
             let secretKey = result.secretKey;
             let algorithm = result.algorithm;
-            self.sbsKey = (new Buffer(result.stationKey, 'base64')).toString('ascii');
-            self.sbsAlgorithm = result.algorithm2;
 
             self.baseKbsStreamUrl = decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbs);
             self.baseMbcStreamUrl = decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.mbc);
             self.baseSbsStreamUrl = decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.sbs);
 
-            self.basekbsAgent = decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsAgent);
-            self.baseKbsTs = decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsTs);
-            self.baseKbsParam = decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsParam);
-            self.baseKbsMeta = decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsMeta);
+            self.sbsInfo = {
+                sbsKey: (new Buffer(result.stationKey, 'base64')).toString('ascii'),
+                sbsAlgorithm: result.algorithm2
+            }
+            self.kbsInfo = {
+                kbsAgent: decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsAgent),
+                kbsTs: decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsTs),
+                kbsParam: decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsParam),
+                kbsMeta: decodeStreamUrl(algorithm, secretKey, radioResource.encodedRadio.kbsMeta)
+            }
         });
     };
 
