@@ -19,7 +19,7 @@ function ControllerPersonalRadio(context) {
   this.commandRouter = this.context.coreCommand;
   this.logger = this.context.logger;
   this.configManager = this.context.configManager;
-  this.stateMachine = self.commandRouter.stateMachine;
+  this.stateMachine = this.commandRouter.stateMachine;
 
   this.logger.info("ControllerPersonalRadio::constructor");
 }
@@ -100,8 +100,6 @@ ControllerPersonalRadio.prototype.getUIConfig = function() {
 
 ControllerPersonalRadio.prototype.setUIConfig = function(data)
 {
-  var self = this;
-
   var uiconf=fs.readJsonSync(__dirname+'/UIConfig.json');
 
   return libQ.resolve();
@@ -291,30 +289,30 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       var radioChannel = self.radioCore.radioStations.kbs[channel].channel;
       self.radioCore.fetchRadioUrl(station, self.radioCore.kbsInfo.kbsTs, "")
       .then(function (reqTs) {
-        var _0x5948f1=_0x573c;(function(_0x337c35,_0x1647c2)
-        {var _0x578434=_0x573c,_0xb7d97e=_0x337c35();while(!![]){
-          try{
-            var _0xd03493=parseInt(_0x578434(0xc2))/0x1+-parseInt(_0x578434(0xbf))/0x2*(
-                parseInt(_0x578434(0xc3))/0x3)+parseInt(_0x578434(0xbe))/0x4+-
-                parseInt(_0x578434(0xb9))/0x5+-parseInt(_0x578434(0xbc))/0x6+-
-                parseInt(_0x578434(0xc1))/0x7+parseInt(_0x578434(0xba))/0x8;
-            if(_0xd03493===_0x1647c2)break;else _0xb7d97e['push'](_0xb7d97e['shift']());
-          }catch(_0x770f7f){_0xb7d97e['push'](_0xb7d97e['shift']());}}}(_0x55f1,0xacb8b));
-        function _0x573c(_0x469cdd,_0x361d45){var _0x55f196=_0x55f1();
-          return _0x573c=function(_0x573c2a,_0x3570f5){_0x573c2a=_0x573c2a-0xb8;var _0x1a03b8=_0x55f196[_0x573c2a];
-            return _0x1a03b8;
-            },_0x573c(_0x469cdd,_0x361d45);}
-        var paramApi=self['kbsInfo']['kbsParam']+radioChannel,metaApi=self['kbsInfo'][_0x5948f1(0xc0)]+
-            radioChannel,streamUrl=Buffer['from'](paramApi+_0x5948f1(0xb8)+reqTs+'&authcode='+
-            cryptoJs(self['kbsInfo'][_0x5948f1(0xbb)]+reqTs+paramApi)['toString']()
-                ['toUpperCase']())['toString']('base64')[_0x5948f1(0xbd)](/=/gi,''),
-            metaUrl=Buffer['from'](metaApi+'&reqts='+reqTs+'&authcode='+cryptoJs(self['kbsInfo']
-                [_0x5948f1(0xbb)]+reqTs+metaApi)['toString']()['toUpperCase']())['toString']
-            ('base64')['replace'](/=/gi,'');function _0x55f1(){
-              var _0x5bcac8=['6EuXCsA','kbsMeta','9265704YxbPzF','1183080aXmflk','923823AauTSZ',
-                '&reqts=','6237445KYvNDB','33050336LWjkGF','kbsAgent','7657056qfEUEJ','replace','657020MxYjbG'];
-              _0x55f1=function(){return _0x5bcac8;};return _0x55f1();
-            }
+        var _0x14bc08=_0x33c8;function _0x4777(){
+          var _0x565767=['toString','66890RiSBck','base64','2AkkhaJ','399174zwCWGk','kbsInfo','9XvPyUF','1872AwWzZD',
+            '604308qObDxC','2215oKtDUp','&authcode=','1745876pjhNAD','2032944DHfbgX','14BpJFUW','toUpperCase','replace',
+            '291153KTZTqg','&reqts='];_0x4777=function(){return _0x565767;};return _0x4777();
+        }(function(_0x8b751b,_0x5dbfc1){var _0x285135=_0x33c8,_0xead45d=_0x8b751b();
+          while(!![]){try{var _0x316579=parseInt(_0x285135(0x1b1))/0x1*(parseInt(_0x285135(0x1b2))/0x2)+-
+              parseInt(_0x285135(0x1ac))/0x3+-parseInt(_0x285135(0x1b5))/0x4*(-
+              parseInt(_0x285135(0x1b7))/0x5)+parseInt(_0x285135(0x1b6))/0x6*(
+              parseInt(_0x285135(0x1bb))/0x7)+-parseInt(_0x285135(0x1ba))/0x8+
+              parseInt(_0x285135(0x1b4))/0x9*(parseInt(_0x285135(0x1af))/0xa)+-
+              parseInt(_0x285135(0x1b9))/0xb;
+            if(_0x316579===_0x5dbfc1)break;else _0xead45d['push'](_0xead45d['shift']());
+          }catch(_0x3062e0){_0xead45d['push'](_0xead45d['shift']());}}}(_0x4777,0x4a662));
+        function _0x33c8(_0x390d13,_0x60fc6d){var _0x47774f=_0x4777();
+          return _0x33c8=function(_0x33c8bc,_0x2b05d8){_0x33c8bc=_0x33c8bc-0x1aa;
+            var _0x9b262c=_0x47774f[_0x33c8bc];return _0x9b262c;},_0x33c8(_0x390d13,_0x60fc6d);}
+        var paramApi=self['radioCore'][_0x14bc08(0x1b3)]['kbsParam']+radioChannel,
+            metaApi=self['radioCore']['kbsInfo']['kbsMeta']+radioChannel,
+            streamUrl=Buffer['from'](paramApi+_0x14bc08(0x1ad)+reqTs+_0x14bc08(0x1b8)+
+            cryptoJs(self['radioCore']['kbsInfo']['kbsAgent']+reqTs+paramApi)[_0x14bc08(0x1ae)]()
+                [_0x14bc08(0x1aa)]())['toString'](_0x14bc08(0x1b0))[_0x14bc08(0x1ab)]
+            (/=/gi,''),metaUrl=Buffer['from'](metaApi+'&reqts='+reqTs+'&authcode='+
+                cryptoJs(self['radioCore']['kbsInfo']['kbsAgent']+reqTs+metaApi)['toString']()
+                [_0x14bc08(0x1aa)]())['toString']('base64')['replace'](/=/gi,'');
 
         self.radioCore.fetchRadioUrl(station, self.radioCore.baseKbsStreamUrl + streamUrl, "")
         .then(function (responseUrl) {
@@ -363,46 +361,19 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       break;
 
     case 'websbs':
-      var baseSbsStreamUrl = self.radioCore.baseSbsStreamUrl + self.radioCore.radioStations.sbs[channel].channel;
-      self.radioCore.fetchRadioUrl(station, baseSbsStreamUrl, {device: "mobile"})
-        .then(function (responseUrl) {
-          if (responseUrl  !== null) {
-            var decipher = crypto.createDecipheriv(self.radioCore.sbsInfo.sbsAlgorithm, self.radioCore.sbsInfo.sbsKey, "");
-            var streamUrl = decipher.update(responseUrl, 'base64', 'utf8');
-            streamUrl += decipher.final('utf8');
-
-            response["uri"] = uri;
-            response["realUri"] = streamUrl;
-            response["name"] = self.radioCore.radioStations.sbs[channel].title;
-          }
-          self.radioCore.state = {
-            station: station
-          }
-          responseResult.push(response);
+      self.radioCore.sbsExplodeUri(station, channel, uri, response)
+      .then(function(result) {
+          responseResult.push(result)
           defer.resolve(responseResult);
-        });
+      })
       break;
 
     case 'webmbc':
-      query = {
-        channel: self.radioCore.radioStations.mbc[channel].channel,
-        agent: "webapp",
-        protocol: "M3U8",
-        nocash: Math.random()
-      };
-      self.radioCore.fetchRadioUrl(station, self.radioCore.baseMbcStreamUrl, query)
-        .then(function (responseUrl) {
-          if (responseUrl  !== null) {
-            response["uri"] = uri;
-            response["realUri"] = responseUrl;
-            response["name"] = self.radioCore.radioStations.mbc[channel].title;
-          }
-          self.radioCore.state = {
-            station: station
-          }
-          responseResult.push(response);
-          defer.resolve(responseResult);
-        });
+      self.radioCore.mbcExplodeUri(station, channel, uri, response)
+          .then(function(result) {
+            responseResult.push(result)
+            defer.resolve(responseResult);
+          })
       break;
 
     case 'weblinn':

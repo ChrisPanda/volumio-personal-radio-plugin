@@ -104,6 +104,63 @@ function RadioCore() {
         return defer.promise;
     }
 
+    const sbsExplodeUri = function(station, channel, uri, response) {
+        let self = this;
+        var defer = libQ.defer();
+
+        const baseSbsStreamUrl = self.baseSbsStreamUrl + self.radioStations.sbs[channel].channel;
+        self.fetchRadioUrl(station, baseSbsStreamUrl, {device: "mobile"})
+            .then( (responseUrl) => {
+                if (responseUrl  !== null) {
+                    const decipher = crypto.createDecipheriv(self.sbsInfo.sbsAlgorithm, self.sbsInfo.sbsKey, "");
+                    let streamUrl = decipher.update(responseUrl, 'base64', 'utf8');
+                    streamUrl += decipher.final('utf8');
+
+                    response = {
+                        ...response,
+                        uri: uri,
+                        realUri: streamUrl,
+                        name:  self.radioStations.sbs[channel].title
+                    }
+                }
+                self.state = {
+                    station: station
+                }
+                defer.resolve(response);
+            });
+
+        return defer.promise;
+    }
+
+    const mbcExplodeUri = function (station, channel, uri, response) {
+        let self = this;
+        var defer = libQ.defer();
+
+        let query = {
+            channel: self.radioStations.mbc[channel].channel,
+            agent: "webapp",
+            protocol: "M3U8",
+            nocash: Math.random()
+        };
+        self.fetchRadioUrl(station, self.baseMbcStreamUrl, query)
+            .then((responseUrl) => {
+                if (responseUrl !== null) {
+                    response = {
+                        ...response,
+                        uri: uri,
+                        realUri: responseUrl,
+                        name:  self.radioStations.mbc[channel].title
+                    }
+                }
+                self.state = {
+                    station: station
+                }
+                defer.resolve(response);
+            });
+
+        return defer.promise;
+    }
+
     const setRadioMetaInfo = function (station, channel, programCode, metaUrl, forceUpdate) {
         let self = this;
 
@@ -372,7 +429,9 @@ function RadioCore() {
         fetchRadioUrl: fetchRadioUrl,
         resetRPTimer: resetRPTimer,
         loadRadioI18nStrings: loadRadioI18nStrings,
-        addRadioResource: addRadioResource
+        addRadioResource: addRadioResource,
+        sbsExplodeUri: sbsExplodeUri,
+        mbcExplodeUri: mbcExplodeUri
     }
 
 }
