@@ -6,26 +6,16 @@ global.personalRadioRoot = path.resolve(__dirname);
 const libQ = require('kew');
 const fs = require('fs-extra');
 const fetch = require('node-fetch')
-const dateGetHours = require('date-fns/getHours');
-const dateFormat = require('date-fns/format');
-const dateAddDays = require('date-fns/addDays');
-const dateParse = require('date-fns/parse');
-const dateDifferenceInSeconds = require('date-fns/differenceInSeconds');
-const utcToZonedTime = require('date-fns-tz/utcToZonedTime')
-const koLocale = require('date-fns/locale/ko');
 const urlModule = require('url');
 const querystring = require('querystring');
 const crypto = require("crypto");
 const cryptoJs = require('crypto-js/sha256');
-const RPTimer = require(personalRadioRoot + '/radio-timer');
+const radioProgram = require(personalRadioRoot + '/radio-program');
 
 module.exports = RadioCore;
 
 function RadioCore() {
-
     this.state = {};
-    this.metaRetry = { max: 5, count: 0};
-    this.timer = null;
     this.rootNavigation = {};
     this.i18nStrings = {};
     this.i18nStringsDefaults = {};
@@ -104,6 +94,67 @@ function RadioCore() {
         return defer.promise;
     }
 
+    const kbsExplodeUri = function (station, channel, uri, response) {
+        let self = this;
+        let defer = libQ.defer();
+
+        let radioChannel = self.radioStations.kbs[channel].channel;
+        self.radioCore.fetchRadioUrl(station, self.kbsInfo.kbsTs, "")
+            .then(function (reqTs) {
+                var _0x3057e1=_0x50b9;function _0x3ca8(){var _0x4cb98f=['3071618qisgfS','&reqts=','4635561aRCNYS',
+                    '5105564DZAmLO','4912giKxFs','6345486bglSjP','1kkeuSK','kbsInfo','kbsAgent','9518940KdOAIA',
+                    '1621880ERlAKF','62631VoAYYC','base64','toString','replace'];_0x3ca8=function(){return _0x4cb98f;
+                    };return _0x3ca8();}(function(_0x4b04e2,_0x4c52d8){
+                var _0xf66d51=_0x50b9,_0x43b488=_0x4b04e2();while(!![]){
+                    try{
+                        var _0x3af0da=-parseInt(_0xf66d51('0x143'))/0x1*(
+                        parseInt(_0xf66d51('0x14c'))/0x2)+-parseInt(_0xf66d51('0x13f'))/0x3+-
+                        parseInt(_0xf66d51('0x140'))/0x4+parseInt(_0xf66d51('0x147'))/0x5+
+                        parseInt(_0xf66d51('0x146'))/0x6+-parseInt(_0xf66d51('0x142'))/0x7+
+                        parseInt(_0xf66d51('0x141'))/0x8*(parseInt(_0xf66d51('0x148'))/0x9);
+                        if(_0x3af0da===_0x4c52d8)break;else _0x43b488['push'](_0x43b488['shift']());
+                    }
+                    catch(_0x3e3476){_0x43b488['push'](_0x43b488['shift']());}}}(_0x3ca8,0xe08ff));
+                function _0x50b9(_0x52d001,_0x126a6d){var _0x3ca8f3=_0x3ca8();return _0x50b9=function(_0x50b953,_0x3e92c3)
+                {_0x50b953=_0x50b953-0x13e;var _0x46a22=_0x3ca8f3[_0x50b953];return _0x46a22;},
+                    _0x50b9(_0x52d001,_0x126a6d);}var paramApi=self['kbsInfo']['kbsParam']+radioChannel,
+                    metaApi=self['kbsInfo']['kbsMeta']+radioChannel,
+                    streamUrl=Buffer['from'](paramApi+_0x3057e1('0x13e')+reqTs+'&authcode='+
+                        cryptoJs(self['kbsInfo'][_0x3057e1('0x145')]+reqTs+paramApi)
+                            [_0x3057e1('0x14a')]()['toUpperCase']())['toString']
+                    (_0x3057e1('0x149'))[_0x3057e1('0x14b')](/=/gi,''),
+                    metaUrl=Buffer['from'](metaApi+_0x3057e1('0x13e')+reqTs+'&authcode='+
+                        cryptoJs(self[_0x3057e1('0x144')]['kbsAgent']+reqTs+metaApi)
+                            ['toString']()['toUpperCase']())['toString']('base64')['replace'](/=/gi,'');
+
+                let fetches = [
+                    self.fetchRadioUrl(station, self.baseKbsStreamUrl + streamUrl, ""),
+                    radioProgram.getKbsRadioProgram(station, channel, metaUrl)
+                ];
+                Promise.all(fetches).then( results => {
+                    let [responseUrl, responseProgram] = results;
+
+                    if (responseUrl !== null) {
+                        response = {
+                            ...response,
+                            uri: uri,
+                            realUri: JSON.parse(responseUrl).real_service_url,
+                            name: self.radioStations.kbs[channel].title,
+                            disableUiControls: true
+                        }
+                    }
+                    response = {
+                        ...response,
+                        ...responseProgram.duration && {duration: responseProgram.duration},
+                        ...responseProgram.programTitle && {program: responseProgram.programTitle},
+                        ...responseProgram.albumart && {albumart: responseProgram.albumart}
+                    }
+                })
+            })
+
+        return defer.promise;
+    }
+
     const sbsExplodeUri = function(station, channel, uri, response) {
         let self = this;
         var defer = libQ.defer();
@@ -134,7 +185,7 @@ function RadioCore() {
 
     const mbcExplodeUri = function (station, channel, uri, response) {
         let self = this;
-        var defer = libQ.defer();
+        let defer = libQ.defer();
 
         let query = {
             channel: self.radioStations.mbc[channel].channel,
@@ -159,192 +210,6 @@ function RadioCore() {
             });
 
         return defer.promise;
-    }
-
-    const setRadioMetaInfo = function (station, channel, programCode, metaUrl, forceUpdate) {
-        let self = this;
-
-        self.fetchRadioUrl(station, self.baseKbsStreamUrl + metaUrl, "")
-            .then(function (responseProgram) {
-                let responseJson = JSON.parse(responseProgram);
-                let activeProgram = responseJson.data[0]
-
-                let vState = self.context.stateMachine.getState();
-                let queueItem = self.context.stateMachine.playQueue.arrayQueue[vState.position];
-                vState.seek = 0;
-                vState.disableUiControls = true;
-
-                // checking program is changed
-                if (!forceUpdate && activeProgram.program_code === programCode) {
-                    self.metaRetry.count ++;
-                    if (self.metaRetry.count > self.metaRetry.max) {
-                        vState.duration = 0;
-                        queueItem.duration = 0;
-                        self.metaRetry.count = 0;
-                        self.context.pushState(vState);
-                    }
-                    else
-                        self.timer = new RPTimer(setRadioMetaInfo.bind(this),
-                            [station, channel, programCode, metaUrl, false], 10
-                        );
-                    return
-                }
-
-                if (activeProgram.relation_image) {
-                    vState.albumart = activeProgram.relation_image;
-                    queueItem.albumart = activeProgram.relation_image;
-                }
-
-                if (activeProgram.end_time) {
-                    let remainingSeconds = self.makeProgramFinishTime(activeProgram.end_time)
-                    vState.duration = remainingSeconds;
-                    queueItem.duration = remainingSeconds;
-                    self.context.stateMachine.currentSongDuration= remainingSeconds;
-                    self.timer = new RPTimer(
-                        setRadioMetaInfo.bind(this),
-                        [station, channel, activeProgram.program_code, metaUrl, false],
-                        remainingSeconds
-                    );
-                }
-                else {
-                    vState.duration = 0;
-                    queueItem.duration = 0;
-                }
-
-                if (activeProgram.program_title) {
-                    vState.name = self.radioStations.kbs[channel].title + "("
-                        + activeProgram.program_title + ")";
-                    queueItem.name = vState.name;
-                }
-                else {
-                    vState.name = self.radioStations.kbs[channel].title
-                    queueItem.name = vState.name;
-                }
-
-                self.context.stateMachine.currentSeek = 0;  // reset Volumio timer
-                self.context.stateMachine.playbackStart=Date.now();
-                self.context.stateMachine.askedForPrefetch=false;
-                self.context.stateMachine.prefetchDone=false;
-                self.context.stateMachine.simulateStopStartDone=false;
-
-                self.context.pushState(vState);
-            })
-            .fail(function (error) {
-                self.logger.error("[ControllerPersonalRadio::setRadioMetaInfo] Error=", error)
-            })
-    }
-
-    const setMBCSchedule = function (station, channel, programCode, metaUrl, forceUpdate) {
-        let self = this;
-
-        const mbcSchedule = "https://miniunit.imbc.com/Schedule?rtype=jsonp";
-        self.fetchRadioUrl(station, mbcSchedule, "")
-            .then(function (responseProgram) {
-
-                }
-            )
-    }
-
-    const makeProgramFinishTime = function (endTime) {
-        let remainingSeconds
-
-        try {
-            let endProgramHour = Number(endTime.substring(0, 2));
-            let endProgramMinute = endTime.substring(2, 4);
-            let nextDate;
-
-            // get local time
-            let zonedDate = utcToZonedTime(new Date(), 'Asia/Seoul');
-
-            if (endProgramHour >= 24) {
-                endProgramHour -= 24;
-                let hours = dateGetHours(zonedDate)
-                // check local afternoon
-                if (hours > 12)
-                    nextDate = dateFormat(dateAddDays(zonedDate, 1), 'MMdd');
-                else
-                    nextDate = dateFormat(zonedDate, 'MMdd');
-            } else
-                nextDate = dateFormat(zonedDate, 'MMdd');
-            endProgramHour = endProgramHour.toString().padStart(2, '0');
-
-            remainingSeconds = dateDifferenceInSeconds(
-                dateParse(nextDate + endProgramHour + endProgramMinute, 'MMddHHmm', new Date(), {locale: koLocale}),
-                zonedDate
-            ) + 5;
-        }
-        catch (error) {
-            self.logger.error("[ControllerPersonalRadio::makeProgramFinishTime] Error=", error);
-        }
-        return remainingSeconds;
-    }
-
-    const getRadioProgram = function (radioChannel, channelName) {
-        let self = this;
-        let metaApi = self.kbsInfo.kbsMeta + radioChannel;
-        let station = "kbs";
-
-        self.fetchRadioUrl(station, self.kbsInfo.kbsTs, "")
-            .then(function (reqTs) {
-                // kbs program schedule
-                function _0x4b15(){
-                    var _0x622e72=['kbsInfo','&authcode=','30780TFJSCF','4466736LkJTXV','5886yiFFrD','9giLhVb','393456nFMFeG',
-                        '1834875GfsuoU','replace','2450840vgoIih','52MmrUCb','4928UjpxMf','21044SWDnyM','1485GvejIK'];
-                    _0x4b15=function(){return _0x622e72;};return _0x4b15();
-                }
-                var _0x40cd55=_0x5366;(function(_0x1b4a08,_0x42ec4d)
-                {var _0x1fe6ed=_0x5366,_0x20edc6=_0x1b4a08();while(!![]){
-                    try{
-                        var _0x2ada3d=parseInt(_0x1fe6ed(0xfe))/0x1*(-parseInt(_0x1fe6ed(0xfc))/0x2)+
-                        parseInt(_0x1fe6ed(0xf8))/0x3+-parseInt(_0x1fe6ed(0xfb))/0x4+-
-                        parseInt(_0x1fe6ed(0xf1))/0x5*(parseInt(_0x1fe6ed(0xf6))/0x6)+-
-                        parseInt(_0x1fe6ed(0xf9))/0x7+-parseInt(_0x1fe6ed(0xf5))/0x8*(-
-                        parseInt(_0x1fe6ed(0xf7))/0x9)+-parseInt(_0x1fe6ed(0xf4))/0xa*(-
-                        parseInt(_0x1fe6ed(0xfd))/0xb);if(_0x2ada3d===_0x42ec4d)break;
-                        else _0x20edc6['push'](_0x20edc6['shift']());}
-                catch(_0x33cd4a){_0x20edc6['push'](_0x20edc6['shift']());}}}(_0x4b15,0x56b1e));
-                function _0x5366(_0x4b3f23,_0xbd0f08){var _0x4b1594=_0x4b15();
-                    return _0x5366=function(_0x53664f,_0x28f2a8){_0x53664f=_0x53664f-0xf1;
-                        var _0x251ccf=_0x4b1594[_0x53664f];return _0x251ccf;},_0x5366(_0x4b3f23,_0xbd0f08);}
-                var metaUrl=Buffer['from'](metaApi+'&reqts='+reqTs+_0x40cd55(0xf3)+
-                    cryptoJs(self[_0x40cd55(0xf2)]['kbsAgent']+reqTs+metaApi)['toString']()['toUpperCase']())
-                    ['toString']('base64')[_0x40cd55(0xfa)](/=/gi,'');
-
-                self.fetchRadioUrl(station, self.baseKbsStreamUrl + metaUrl, "")
-                    .then(function (responseProgram) {
-                        let responseJson = JSON.parse(responseProgram);
-                        let result = "<table><tbody>"
-                        responseJson.data.map(item => {
-                            let resultItem = "<tr><td>" +
-                                item.start_time.substring(0,2) + ":" + item.start_time.substring(2,4) + "~" +
-                                item.end_time.substring(0,2) + ":" + item.end_time.substring(2,4) + "<td>" +
-                                item.program_title + "</td></tr>";
-                            result = result + resultItem;
-                        })
-                        result = result + "</tbody></table>"
-                        let modalData = {
-                            title: channelName + " " + self.getRadioI18nString('RADIO_PROGRAM'),
-                            message: result,
-                            size: 'lg',
-                            buttons: [{
-                                name: 'Close',
-                                class: 'btn btn-info',
-                                emit: 'closeModals',
-                                payload: ''
-                            }]
-                        }
-                        self.context.commandRouter.broadcastMessage("openModal", modalData);
-                    });
-            });
-    }
-
-    const resetRPTimer = function() {
-        let self=this;
-
-        self.timer = new RPTimer(setRadioMetaInfo.bind(this),
-            [this.state.station, self.state.channel, self.state.programCode, self.state.metaUrl, true],
-            self.state.remainingSeconds
-        );
     }
 
     const loadRadioI18nStrings = function () {
@@ -421,15 +286,13 @@ function RadioCore() {
     return {
         init: init,
         getRadioI18nString: getRadioI18nString,
-        setRadioMetaInfo: setRadioMetaInfo,
-        makeProgramFinishTime: makeProgramFinishTime,
         getRadioProgram: getRadioProgram,
         toast: toast,
         errorRadioToast: errorRadioToast,
         fetchRadioUrl: fetchRadioUrl,
-        resetRPTimer: resetRPTimer,
         loadRadioI18nStrings: loadRadioI18nStrings,
         addRadioResource: addRadioResource,
+        kbsExplodeUri: kbsExplodeUri,
         sbsExplodeUri: sbsExplodeUri,
         mbcExplodeUri: mbcExplodeUri
     }
