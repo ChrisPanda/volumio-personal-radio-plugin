@@ -10,7 +10,6 @@ const urlModule = require('url');
 const querystring = require('querystring');
 const crypto = require("crypto");
 const cryptoJs = require('crypto-js/sha256');
-const radioProgram = require(personalRadioRoot + '/radio-program');
 
 module.exports = RadioCore;
 
@@ -60,7 +59,6 @@ function RadioCore() {
 
     const fetchRadioUrl = function (station, url, query) {
         let self = this;
-        let defer = libQ.defer();
         let newUrl = url
 
         if (query) {
@@ -76,22 +74,22 @@ function RadioCore() {
             credentials: 'same-origin'
         };
 
-        fetch(newUrl, options)
-            .then((response) => response.text())
-            .then((response) => {
-                defer.resolve(response);
-            })
-            .catch((error) => {
-                if (urlModule.parse(newUrl).hostname.startsWith('raw.'))
-                    self.errorRadioToast(null,'ERROR_SECRET_KEY_SERVER');
-                else
-                    self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
+        return new Promise((resolve, reject) => {
+            fetch(newUrl, options)
+                .then((response) => response.text())
+                .then((response) => {
+                    resolve(response);
+                })
+                .catch((error) => {
+                    if (urlModule.parse(newUrl).hostname.startsWith('raw.'))
+                        self.errorRadioToast(null, 'ERROR_SECRET_KEY_SERVER');
+                    else
+                        self.errorRadioToast(station, 'ERROR_STREAM_SERVER');
 
-                self.logger.info('ControllerPersonalRadio:fetchRadioUrl Error: ' + error);
-                defer.reject(null);
-            })
-
-        return defer.promise;
+                    self.logger.info('ControllerPersonalRadio:fetchRadioUrl Error: ' + error);
+                    reject(null);
+                })
+        })
     }
 
     const kbsExplodeUri = function (station, channel, uri, response) {
@@ -99,7 +97,7 @@ function RadioCore() {
         let defer = libQ.defer();
 
         let radioChannel = self.radioStations.kbs[channel].channel;
-        self.radioCore.fetchRadioUrl(station, self.kbsInfo.kbsTs, "")
+        self.fetchRadioUrl(station, self.kbsInfo.kbsTs, "")
             .then(function (reqTs) {
                 var _0x3057e1=_0x50b9;function _0x3ca8(){var _0x4cb98f=['3071618qisgfS','&reqts=','4635561aRCNYS',
                     '5105564DZAmLO','4912giKxFs','6345486bglSjP','1kkeuSK','kbsInfo','kbsAgent','9518940KdOAIA',
@@ -129,7 +127,7 @@ function RadioCore() {
 
                 let fetches = [
                     self.fetchRadioUrl(station, self.baseKbsStreamUrl + streamUrl, ""),
-                    radioProgram.getKbsRadioProgram(station, channel, metaUrl)
+                    self.context.radioProgram.getKbsRadioProgram(station, channel, metaUrl)
                 ];
                 Promise.all(fetches).then( results => {
                     let [responseUrl, responseProgram] = results;
@@ -149,6 +147,8 @@ function RadioCore() {
                         ...responseProgram.programTitle && {program: responseProgram.programTitle},
                         ...responseProgram.albumart && {albumart: responseProgram.albumart}
                     }
+
+                    defer.resolve(response)
                 })
             })
 
@@ -286,7 +286,6 @@ function RadioCore() {
     return {
         init: init,
         getRadioI18nString: getRadioI18nString,
-        getRadioProgram: getRadioProgram,
         toast: toast,
         errorRadioToast: errorRadioToast,
         fetchRadioUrl: fetchRadioUrl,

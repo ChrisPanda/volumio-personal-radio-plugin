@@ -27,39 +27,38 @@ function RadioProgram() {
 
     const getKbsRadioProgram = function(station, channel, metaUrl) {
         let self=this;
-        let defer = libQ.defer();
 
-        self.radioCore.fetchRadioUrl(station, self.radioCore.baseKbsStreamUrl + metaUrl, "")
-            .then((responseProgram) => {
-                let responseJson = JSON.parse(responseProgram);
-                let activeProgram = responseJson.data[0]
-                let result = {}
-                let remainingSeconds
+        return new Promise((resolve, reject) => {
+            self.radioCore.fetchRadioUrl(station, self.radioCore.baseKbsStreamUrl + metaUrl, "")
+                .then((responseProgram) => {
+                    let responseJson = JSON.parse(responseProgram);
+                    let activeProgram = responseJson.data[0]
+                    let result = {}
+                    let remainingSeconds
 
-                if (activeProgram.end_time) {
-                    remainingSeconds = self.calculateProgramFinishTime(activeProgram.end_time)
-                    self.radioCore.state = {
-                        station: station,
-                        channel: channel,
-                        programCode: activeProgram.program_code,
-                        remainingSeconds: remainingSeconds,
-                        metaUrl: metaUrl
+                    if (activeProgram.end_time) {
+                        remainingSeconds = self.calculateProgramFinishTime(activeProgram.end_time)
+                        self.radioCore.state = {
+                            station: station,
+                            channel: channel,
+                            programCode: activeProgram.program_code,
+                            remainingSeconds: remainingSeconds,
+                            metaUrl: metaUrl
+                        }
                     }
-                }
-                result = {
-                    ...remainingSeconds && {duration: remainingSeconds},
-                    ...activeProgram.program_title && {programTitle: activeProgram.program_title},
-                    ...activeProgram.relation_image && {albumart: activeProgram.relation_image},
-                }
+                    result = {
+                        ...remainingSeconds && {duration: remainingSeconds},
+                        ...activeProgram.program_title && {programTitle: activeProgram.program_title},
+                        ...activeProgram.relation_image && {albumart: activeProgram.relation_image},
+                    }
 
-                defer.resolve(result);
-            })
-            .fail(function (error) {
-                self.logger.error("[ControllerPersonalRadio:getKbsRadioProgram] Error=", error);
-                defer.reject();
-            })
-
-        return defer.promise;
+                    resolve(result);
+                })
+                .catch( (error) => {
+                    self.logger.error("[ControllerPersonalRadio:getKbsRadioProgram] Error=", error);
+                    reject();
+                })
+        })
     }
 
     const setKbsRadioProgram = function (forceUpdate) {
@@ -156,7 +155,7 @@ function RadioProgram() {
         let metaApi = self.radioCore.kbsInfo.kbsMeta + radioChannel;
         let station = "kbs";
 
-        self.fetchRadioUrl(station, self.radioCore.kbsInfo.kbsTs, "")
+        self.radioCore.fetchRadioUrl(station, self.radioCore.kbsInfo.kbsTs, "")
             .then( (reqTs) => {
                 // kbs program schedule
                 var _0x452b92=_0x1a20;function _0x201c(){var _0x2d92e3=['11897281wJtvmJ','7422BbwuFD','10raTROq',
