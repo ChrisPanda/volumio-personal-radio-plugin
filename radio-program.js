@@ -74,8 +74,8 @@ function RadioProgram() {
                 let responseJson = JSON.parse(responseProgram);
                 let activeProgram = responseJson.data[0]
 
-                let vState = self.context.stateMachine.getState();
-                let queueItem = self.context.stateMachine.playQueue.arrayQueue[vState.position];
+                let vState = self.context.commandRouter.stateMachine.getState();
+                let queueItem = self.context.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
                 vState.seek = 0;
                 vState.disableUiControls = true;
 
@@ -89,7 +89,7 @@ function RadioProgram() {
                         self.context.pushState(vState);
                     }
                     else
-                        self.timer = new RPTimer(setKbsRadioProgram.bind(this),
+                        self.timer = new RPTimer(self.setKbsRadioProgram.bind(this),
                             [station, channel, programCode, metaUrl, false], 10
                         );
                     return
@@ -104,9 +104,9 @@ function RadioProgram() {
                     let remainingSeconds = self.calculateProgramFinishTime(activeProgram.end_time)
                     vState.duration = remainingSeconds;
                     queueItem.duration = remainingSeconds;
-                    self.context.stateMachine.currentSongDuration= remainingSeconds;
+                    self.context.commandRouter.stateMachine.currentSongDuration= remainingSeconds;
                     self.timer = new RPTimer(
-                        setKbsRadioProgram.bind(this),
+                        self.setKbsRadioProgram.bind(this),
                         [station, channel, activeProgram.program_code, metaUrl, false],
                         remainingSeconds
                     );
@@ -126,11 +126,11 @@ function RadioProgram() {
                     queueItem.name = vState.name;
                 }
 
-                self.context.stateMachine.currentSeek = 0;  // reset Volumio timer
-                self.context.stateMachine.playbackStart=Date.now();
-                self.context.stateMachine.askedForPrefetch=false;
-                self.context.stateMachine.prefetchDone=false;
-                self.context.stateMachine.simulateStopStartDone=false;
+                self.context.commandRouter.stateMachine.currentSeek = 0;  // reset Volumio timer
+                self.context.commandRouter.stateMachine.playbackStart=Date.now();
+                self.context.commandRouter.stateMachine.askedForPrefetch=false;
+                self.context.commandRouter.stateMachine.prefetchDone=false;
+                self.context.commandRouter.stateMachine.simulateStopStartDone=false;
 
                 self.context.pushState(vState);
             })
@@ -245,7 +245,7 @@ function RadioProgram() {
     const resetRPTimer = function() {
         let self=this;
 
-        self.timer = new RPTimer(setKbsRadioProgram.bind(this),
+        self.timer = new RPTimer(self.setKbsRadioProgram.bind(this),
             [self.radioCore.state.station, self.radioCore.state.channel, self.radioCore.state.programCode, self.radioCore.state.metaUrl, true],
             self.radioCore.state.remainingSeconds
         );
