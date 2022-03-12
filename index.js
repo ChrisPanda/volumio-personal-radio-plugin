@@ -263,7 +263,6 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
   var uris = uri.split("/");
   var channel = parseInt(uris[1]);
   var response, responseResult=[];
-  var query;
   var station;
 
   // radio_station/channel

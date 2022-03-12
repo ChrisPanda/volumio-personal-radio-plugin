@@ -134,7 +134,7 @@ function RadioProgram() {
 
                 self.context.pushState(vState);
             })
-            .fail(function (error) {
+            .catch( (error) => {
                 self.logger.error("[ControllerPersonalRadio::setKbsRadioProgram] Error=", error)
             })
     }
@@ -193,7 +193,7 @@ function RadioProgram() {
                         })
                         result = result + "</tbody></table>"
                         let modalData = {
-                            title: channelName + " " + self.getRadioI18nString('RADIO_PROGRAM'),
+                            title: channelName + " " + self.radioCore.getRadioI18nString('RADIO_PROGRAM'),
                             message: result,
                             size: 'lg',
                             buttons: [{
