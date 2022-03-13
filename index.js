@@ -252,6 +252,13 @@ ControllerPersonalRadio.prototype.resume = function() {
             self.radioCore.state.metaUrl,
             true);
       }
+      else if (self.radioCore.state.station === 'mbc') {
+        self.radioProgram.setMbcRadioProgram(
+            self.radioCore.state.station,
+            self.radioCore.state.channel,
+            true
+        )
+      }
     });
   });
 };

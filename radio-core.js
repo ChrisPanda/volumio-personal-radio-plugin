@@ -208,12 +208,8 @@ function RadioCore() {
                         ...responseProgram.albumart && {albumart: responseProgram.albumart}
                     }
                 }
-                self.state = {
-                    station: station
-                }
                 defer.resolve(response);
             });
-
 
         return defer.promise;
     }
@@ -301,5 +297,4 @@ function RadioCore() {
         sbsExplodeUri: sbsExplodeUri,
         mbcExplodeUri: mbcExplodeUri
     }
-
 }
