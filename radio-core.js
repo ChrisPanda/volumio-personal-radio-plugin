@@ -209,6 +209,8 @@ function RadioCore() {
                 defer.resolve(response);
             });
 
+        self.context.radioProgram.getMBCSchedule(channel)
+
         return defer.promise;
     }
 

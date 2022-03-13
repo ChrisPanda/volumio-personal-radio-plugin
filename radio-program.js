@@ -4,6 +4,8 @@ const path = require('path');
 global.personalRadioRoot = path.resolve(__dirname);
 
 const dateGetHours = require('date-fns/getHours');
+const dateGetMinutes = require('date-fns/getMinutes');
+const dateGetDay = require('date-fns/getDay');
 const dateFormat = require('date-fns/format');
 const dateAddDays = require('date-fns/addDays');
 const dateParse = require('date-fns/parse');
@@ -18,11 +20,15 @@ module.exports = RadioProgram;
 function RadioProgram() {
     this.timer = null;
     this.metaRetry = { max: 5, count: 0};
+    this.mbcRadioSchedule = {};
 
     const init = function (context) {
+        let self=this;
+
         this.context = context;
         this.logger = context.logger;
-        this.radioCore = context.radioCore
+        this.radioCore = context.radioCore;
+        self.getDefaultMBCSchedule("mbc");
     }
 
     const getKbsRadioProgram = function(station, channel, metaUrl) {
@@ -134,15 +140,50 @@ function RadioProgram() {
             })
     }
 
-    const setMBCSchedule = function (station, channel, programCode, metaUrl, forceUpdate) {
+    const getMBCSchedule = function (channel) {
+        let self = this;
+        const weekdays = ["월", "화", "수", "목", "금", "토", "일"];
+
+        const zonedDate = utcToZonedTime(new Date(), 'Asia/Seoul');
+        const hour = dateGetHours(zonedDate)
+        const minutes = dateGetMinutes(zonedDate)
+        const day = dateGetDay(zonedDate)
+        const now = {
+            day: weekdays[(day - 1 + 7) % 7],
+            time: hour * 60 + minutes,
+        };
+
+        let res = {};
+        console.log("===========getMBCSchedule=======", zonedDate, hour, minutes, day, now);
+        const radioSchedule = self.mbcRadioSchedule;
+        for (let i = 0; i < radioSchedule.length; i++) {
+            if (radioSchedule[i].LiveDays === now.day) {
+                const pTime =
+                    parseInt(radioSchedule[i].StartTime.substring(0, 2)) * 60 +
+                    parseInt(radioSchedule[i].StartTime.substring(2, 4));
+                if (pTime <= now.time && now.time - pTime < radioSchedule[i].RunningTime) {
+                    if (radioSchedule[i].Channel === "STFM") {
+                        res["sfm"] = radioSchedule[i];
+                    } else if (radioSchedule[i].Channel === "FM4U") {
+                        res["mfm"] = radioSchedule[i];
+                    } else if (radioSchedule[i].Channel === "CHAM") {
+                        res["chm"] = radioSchedule[i];
+                    }
+                }
+            }
+        }
+
+        console.log("mbc radio schedule===", res);
+    }
+
+    const getDefaultMBCSchedule = function (station) {
         let self = this;
 
-        const mbcSchedule = "https://miniunit.imbc.com/Schedule?rtype=jsonp";
+        const mbcSchedule = "https://miniunit.imbc.com/Schedule?rtype=json";
         self.radioCore.fetchRadioUrl(station, mbcSchedule, "")
-            .then(function (responseProgram) {
-
-                }
-            )
+        .then( (response) => {
+            self.mbcRadioSchedule = response.Programs
+        })
     }
 
     const getKbsRadioSchedule = function (radioChannel, channelName) {
@@ -259,6 +300,8 @@ function RadioProgram() {
         clearRadioProgram: clearRadioProgram,
         getKbsRadioProgram: getKbsRadioProgram,
         setKbsRadioProgram: setKbsRadioProgram,
+        getDefaultMBCSchedule: getDefaultMBCSchedule,
+        getMBCSchedule: getMBCSchedule,
         getKbsRadioSchedule: getKbsRadioSchedule,
         calculateProgramFinishTime: calculateProgramFinishTime
     }
