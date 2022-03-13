@@ -195,7 +195,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
       })
     })
     .then(function () {
-      if (track.radioType === 'kbs') self.radioProgram.startRadioProgram()
+      self.radioProgram.startRadioProgram(track.radioType)
     })
     .fail(function (e) {
       self.logger.error("[ControllerPersonalRadio::clearAddPlayTrack] Error=", e)

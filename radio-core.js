@@ -196,11 +196,16 @@ function RadioCore() {
         self.fetchRadioUrl(station, self.baseMbcStreamUrl, query)
             .then((responseUrl) => {
                 if (responseUrl !== null) {
+                    const responseProgram = self.context.radioProgram.getMBCSchedule(station, channel)
+
                     response = {
                         ...response,
                         uri: uri,
                         realUri: responseUrl,
-                        name:  self.radioStations.mbc[channel].title
+                        name: self.radioStations.mbc[channel].title,
+                        ...responseProgram.duration && {duration: responseProgram.duration},
+                        ...responseProgram.programTitle && {program: responseProgram.programTitle},
+                        ...responseProgram.albumart && {albumart: responseProgram.albumart}
                     }
                 }
                 self.state = {
@@ -209,7 +214,6 @@ function RadioCore() {
                 defer.resolve(response);
             });
 
-        self.context.radioProgram.getMBCSchedule(channel)
 
         return defer.promise;
     }
