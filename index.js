@@ -195,7 +195,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
       })
     })
     .then(function () {
-      if (track.radioType === 'kbs') self.radioProgram.resetRPTimer()
+      if (track.radioType === 'kbs') self.radioProgram.startRadioProgram()
     })
     .fail(function (e) {
       self.logger.error("[ControllerPersonalRadio::clearAddPlayTrack] Error=", e)
@@ -211,7 +211,7 @@ ControllerPersonalRadio.prototype.seek = function (position) {
 ControllerPersonalRadio.prototype.stop = function() {
   var self = this;
 
-  self.radioProgram.clearTimer();
+  self.radioProgram.clearRadioProgram();
 
   self.commandRouter.pushToastMessage(
       'info',
@@ -228,7 +228,7 @@ ControllerPersonalRadio.prototype.stop = function() {
 ControllerPersonalRadio.prototype.pause = function() {
   var self = this;
 
-  self.radioProgram.clearTimer();
+  self.radioProgram.clearRadioProgram();
 
   return self.mpdPlugin.pause().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
@@ -245,7 +245,12 @@ ControllerPersonalRadio.prototype.resume = function() {
 
       self.commandRouter.stateMachine.syncState(state, self.serviceName);
       if (self.radioCore.state.station === 'kbs') {
-        self.radioProgram.setKbsRadioProgram(true);
+        self.radioProgram.setKbsRadioProgram(
+            self.radioCore.state.station,
+            self.radioCore.state.channel,
+            self.radioCore.state.programCode,
+            self.radioCore.state.metaUrl,
+            true);
       }
     });
   });

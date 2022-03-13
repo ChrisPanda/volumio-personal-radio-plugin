@@ -61,13 +61,8 @@ function RadioProgram() {
         })
     }
 
-    const setKbsRadioProgram = function (forceUpdate) {
+    const setKbsRadioProgram = function (station, channel, programCode, metaUrl, forceUpdate) {
         let self = this;
-
-        const station = self.radioCore.state.station;
-        const channel = self.radioCore.state.channel;
-        const programCode = self.radioCore.state.programCode;
-        const metaUrl = self.radioCore.state.metaUrl;
 
         self.radioCore.fetchRadioUrl(station, self.radioCore.baseKbsStreamUrl + metaUrl, "")
             .then( (responseProgram) => {
@@ -242,7 +237,7 @@ function RadioProgram() {
         return remainingSeconds;
     }
 
-    const resetRPTimer = function() {
+    const startRadioProgram = function() {
         let self=this;
 
         self.timer = new RPTimer(self.setKbsRadioProgram.bind(this),
@@ -251,7 +246,7 @@ function RadioProgram() {
         );
     }
 
-    const clearTimer = function() {
+    const clearRadioProgram = function() {
         if (this.timer) {
             this.timer.clear();
             this.timer = null;
@@ -260,8 +255,8 @@ function RadioProgram() {
 
     return {
         init: init,
-        resetRPTimer: resetRPTimer,
-        clearTimer: clearTimer,
+        startRadioProgram: startRadioProgram,
+        clearRadioProgram: clearRadioProgram,
         getKbsRadioProgram: getKbsRadioProgram,
         setKbsRadioProgram: setKbsRadioProgram,
         getKbsRadioSchedule: getKbsRadioSchedule,
