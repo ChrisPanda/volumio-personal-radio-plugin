@@ -196,7 +196,7 @@ function RadioCore() {
         self.fetchRadioUrl(station, self.baseMbcStreamUrl, query)
             .then((responseUrl) => {
                 if (responseUrl !== null) {
-                    const responseProgram = self.context.radioProgram.getMBCSchedule(station, channel)
+                    const responseProgram = self.context.radioProgram.getMbcRadioProgram(station, channel)
 
                     response = {
                         ...response,

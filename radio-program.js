@@ -140,7 +140,7 @@ function RadioProgram() {
             })
     }
 
-    const getMBCSchedule = function (station, channel) {
+    const getMbcRadioProgram = function (station, channel) {
         let self = this;
         const weekdays = ["월", "화", "수", "목", "금", "토", "일"];
 
@@ -155,7 +155,7 @@ function RadioProgram() {
 
         let result = {};
         let channelData;
-        switch (self.radioStations.mbc[channel].channel) {
+        switch (self.radioCore.radioStations.mbc[channel].channel) {
             case "sfm": channelData = "STFM"; break;
             case "mfm": channelData = "FM4U"; break;
             case "chm": channelData = "CHAM"; break;
@@ -194,7 +194,7 @@ function RadioProgram() {
     const setMbcRadioProgram = function (station, channel, forceUpdate) {
         let self = this;
 
-        const responseProgram = self.getMBCSchedule(station, channel)
+        const responseProgram = self.getMbcRadioProgram(station, channel)
 
         let vState = self.context.commandRouter.stateMachine.getState();
         let queueItem = self.context.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
@@ -359,9 +359,11 @@ function RadioProgram() {
         clearRadioProgram: clearRadioProgram,
         getKbsRadioProgram: getKbsRadioProgram,
         setKbsRadioProgram: setKbsRadioProgram,
+
         getDefaultMBCSchedule: getDefaultMBCSchedule,
-        getMBCSchedule: getMBCSchedule,
+        getMbcRadioProgram: getMbcRadioProgram,
         setMbcRadioProgram: setMbcRadioProgram,
+
         getKbsRadioSchedule: getKbsRadioSchedule,
         calculateProgramFinishTime: calculateProgramFinishTime
     }
