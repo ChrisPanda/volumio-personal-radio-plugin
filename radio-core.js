@@ -142,6 +142,8 @@ function RadioCore() {
                     }
                     response = {
                         ...response,
+                        metaUrl: responseProgram.metaUrl,
+                        programCode: responseProgram.programCode,
                         ...responseProgram.duration && {duration: responseProgram.duration},
                         ...responseProgram.programTitle && {program: responseProgram.programTitle},
                         ...responseProgram.albumart && {albumart: responseProgram.albumart}
@@ -199,6 +201,7 @@ function RadioCore() {
                         uri: uri,
                         realUri: responseUrl,
                         name: self.radioStations.mbc[channel].title,
+                        disableUiControls: true,
                         ...responseProgram.duration && {duration: responseProgram.duration},
                         ...responseProgram.programTitle && {program: responseProgram.programTitle},
                         ...responseProgram.albumart && {albumart: responseProgram.albumart}

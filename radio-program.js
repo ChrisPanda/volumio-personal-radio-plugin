@@ -209,6 +209,12 @@ function RadioProgram() {
         self.context.commandRouter.stateMachine.simulateStopStartDone=false;
 
         self.context.pushState(vState);
+
+        self.timer = new RPTimer(
+            self.setMbcRadioProgram.bind(this),
+            [station, channel, false],
+            remainingSeconds
+        );
     }
 
     const getDefaultMBCSchedule = function (station) {
