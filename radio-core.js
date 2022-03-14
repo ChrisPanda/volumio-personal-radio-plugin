@@ -14,7 +14,6 @@ const cryptoJs = require('crypto-js/sha256');
 module.exports = RadioCore;
 
 function RadioCore() {
-    this.state = {};
     this.rootNavigation = {};
     this.i18nStrings = {};
     this.i18nStringsDefaults = {};
@@ -173,9 +172,6 @@ function RadioCore() {
                         realUri: streamUrl,
                         name:  self.radioStations.sbs[channel].title
                     }
-                }
-                self.state = {
-                    station: station
                 }
                 defer.resolve(response);
             });

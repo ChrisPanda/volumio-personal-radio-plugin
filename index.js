@@ -180,7 +180,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
           case 'sbs':
           case 'mbc':
             return self.mpdPlugin.getState().then(function (state) {
-              if (state && track.radioType === 'kbs') {
+              if (state && track.radioType !== 'sbs') {
                 var vState = self.commandRouter.stateMachine.getState();
                 var queueItem = self.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
                 queueItem.name = track.name + " (" + track.program + ")";
@@ -195,7 +195,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
       })
     })
     .then(function () {
-      self.radioProgram.startRadioProgram(track.radioType)
+      self.radioProgram.startRadioProgram(track)
     })
     .fail(function (e) {
       self.logger.error("[ControllerPersonalRadio::clearAddPlayTrack] Error=", e)
@@ -240,22 +240,24 @@ ControllerPersonalRadio.prototype.pause = function() {
 ControllerPersonalRadio.prototype.resume = function() {
   var self = this;
 
+  var trackinfo=self.commandRouter.stateMachine.getTrack(self.commandRouter.stateMachine.currentPosition);
+
   return self.mpdPlugin.resume().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
 
       self.commandRouter.stateMachine.syncState(state, self.serviceName);
-      if (self.radioCore.state.station === 'kbs') {
+      if (trackinfo.radioType === 'kbs') {
         self.radioProgram.setKbsRadioProgram(
-            self.radioCore.state.station,
-            self.radioCore.state.channel,
-            self.radioCore.state.programCode,
-            self.radioCore.state.metaUrl,
+            trackinfo.radioType,
+            trackinfo.channel,
+            trackinfo.programCode,
+            trackinfo.metaUrl,
             true);
       }
-      else if (self.radioCore.state.station === 'mbc') {
+      else if (trackinfo.radioType === 'mbc') {
         self.radioProgram.setMbcRadioProgram(
-            self.radioCore.state.station,
-            self.radioCore.state.channel,
+            trackinfo.radioType,
+            trackinfo.channel,
             true
         )
       }
@@ -284,6 +286,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       type: 'track',
       trackType: self.radioCore.getRadioI18nString('PLUGIN_NAME'),
       radioType: station,
+      channel: channel,
       albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+station+channel+'.png'
   };
 
@@ -316,9 +319,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       response["uri"] = uri;
       response["realUri"] = self.radioCore.radioStations.linn[channel].url;
       response["name"] = self.radioCore.radioStations.linn[channel].title;
-      self.radioCore.state = {
-        station: station
-      }
+
       responseResult.push(response);
       defer.resolve(responseResult);
       break;

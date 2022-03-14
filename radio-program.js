@@ -44,15 +44,10 @@ function RadioProgram() {
 
                     if (activeProgram.end_time) {
                         remainingSeconds = self.calculateProgramFinishTime(activeProgram.end_time)
-                        self.radioCore.state = {
-                            station: station,
-                            channel: channel,
-                            programCode: activeProgram.program_code,
-                            remainingSeconds: remainingSeconds,
-                            metaUrl: metaUrl
-                        }
                     }
                     result = {
+                        programCode: activeProgram.program_code,
+                        metaUrl: metaUrl,
                         ...remainingSeconds && {duration: remainingSeconds},
                         ...activeProgram.program_title && {programTitle: activeProgram.program_title},
                         ...activeProgram.relation_image && {albumart: activeProgram.relation_image},
@@ -170,11 +165,6 @@ function RadioProgram() {
                 if (pTime <= now.time && now.time - pTime < radioSchedule[i].RunningTime) {
                     if (radioSchedule[i].Channel === channelData) {
                         let remainingSeconds = (now.time - pTime) * 60
-                        self.radioCore.state = {
-                            station: station,
-                            channel: channel,
-                            remainingSeconds: remainingSeconds
-                        }
 
                         result = {
                             duration: remainingSeconds,
@@ -331,18 +321,18 @@ function RadioProgram() {
         return remainingSeconds;
     }
 
-    const startRadioProgram = function(station) {
+    const startRadioProgram = function(track) {
         let self=this;
 
-        if (station === "kbs")
+        if (track.radioType === "kbs")
             self.timer = new RPTimer(self.setKbsRadioProgram.bind(this),
-                [self.radioCore.state.station, self.radioCore.state.channel, self.radioCore.state.programCode, self.radioCore.state.metaUrl, true],
-                self.radioCore.state.remainingSeconds
+                [track.radioType, track.channel, track.programCode, track.metaUrl, true],
+                track.duration
             );
-        else if (station === "mbc")
+        else if (track.radioType === "mbc")
             self.timer = new RPTimer(self.setMbcRadioProgram.bind(this),
-                [self.radioCore.state.station, self.radioCore.state.channel, true],
-                self.radioCore.state.remainingSeconds
+                [track.radioType, track.channel, true],
+                track.duration
             );
     }
 
