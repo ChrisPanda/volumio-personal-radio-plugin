@@ -138,11 +138,11 @@ function RadioProgram() {
     const getMbcRadioProgram = function (station, channel) {
         let self = this;
         const weekdays = ["월", "화", "수", "목", "금", "토", "일"];
-
         const zonedDate = utcToZonedTime(new Date(), 'Asia/Seoul');
         const hour = dateGetHours(zonedDate)
         const minutes = dateGetMinutes(zonedDate)
         const day = dateGetDay(zonedDate)
+
         const now = {
             day: weekdays[(day - 1 + 7) % 7],
             time: hour * 60 + minutes,
@@ -191,11 +191,10 @@ function RadioProgram() {
         vState.seek = 0;
         vState.disableUiControls = true;
 
-        vState.albumart = responseProgram.albumart;
-        queueItem.albumart = responseProgram.albumart;
         let remainingSeconds = responseProgram.duration;
-
+        vState.albumart = responseProgram.albumart;
         vState.duration = remainingSeconds;
+        queueItem.albumart = responseProgram.albumart;
         queueItem.duration = remainingSeconds;
 
         vState.name = self.radioCore.radioStations.mbc[channel].title + "("
@@ -203,12 +202,6 @@ function RadioProgram() {
         queueItem.name = vState.name;
 
         self.context.commandRouter.stateMachine.currentSongDuration= remainingSeconds;
-        self.timer = new RPTimer(
-            self.setMbcRadioProgram.bind(this),
-            [station, channel, false],
-            remainingSeconds
-        );
-
         self.context.commandRouter.stateMachine.currentSeek = 0;  // reset Volumio timer
         self.context.commandRouter.stateMachine.playbackStart=Date.now();
         self.context.commandRouter.stateMachine.askedForPrefetch=false;
@@ -324,14 +317,14 @@ function RadioProgram() {
     const startRadioProgram = function(track) {
         let self=this;
 
-        if (track.radioType === "kbs")
+        if (track.station === "kbs")
             self.timer = new RPTimer(self.setKbsRadioProgram.bind(this),
-                [track.radioType, track.channel, track.programCode, track.metaUrl, true],
+                [track.station, track.channel, track.programCode, track.metaUrl, true],
                 track.duration
             );
-        else if (track.radioType === "mbc")
+        else if (track.station === "mbc")
             self.timer = new RPTimer(self.setMbcRadioProgram.bind(this),
-                [track.radioType, track.channel, true],
+                [track.station, track.channel, true],
                 track.duration
             );
     }

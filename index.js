@@ -175,12 +175,12 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
           );
         })
 
-        switch (track.radioType) {
+        switch (track.station) {
           case 'kbs':
           case 'sbs':
           case 'mbc':
             return self.mpdPlugin.getState().then(function (state) {
-              if (state && track.radioType !== 'sbs') {
+              if (state && track.station !== 'sbs') {
                 var vState = self.commandRouter.stateMachine.getState();
                 var queueItem = self.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
                 queueItem.name = track.name + " (" + track.program + ")";
@@ -246,17 +246,17 @@ ControllerPersonalRadio.prototype.resume = function() {
     return self.mpdPlugin.getState().then(function (state) {
 
       self.commandRouter.stateMachine.syncState(state, self.serviceName);
-      if (trackinfo.radioType === 'kbs') {
+      if (trackinfo.station === 'kbs') {
         self.radioProgram.setKbsRadioProgram(
-            trackinfo.radioType,
+            trackinfo.station,
             trackinfo.channel,
             trackinfo.programCode,
             trackinfo.metaUrl,
             true);
       }
-      else if (trackinfo.radioType === 'mbc') {
+      else if (trackinfo.station === 'mbc') {
         self.radioProgram.setMbcRadioProgram(
-            trackinfo.radioType,
+            trackinfo.station,
             trackinfo.channel,
             true
         )
@@ -285,7 +285,7 @@ ControllerPersonalRadio.prototype.explodeUri = function (uri) {
       service: self.serviceName,
       type: 'track',
       trackType: self.radioCore.getRadioI18nString('PLUGIN_NAME'),
-      radioType: station,
+      station: station,
       channel: channel,
       albumart: '/albumart?sourceicon=music_service/personal_radio/logos/'+station+channel+'.png'
   };
