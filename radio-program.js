@@ -40,20 +40,24 @@ function RadioProgram() {
                     let responseJson = JSON.parse(responseProgram);
                     let activeProgram = responseJson.data[0]
                     let result = {}
-                    let remainingSeconds
+                    let remainingSeconds = 0
 
                     if (activeProgram.end_time) {
                         remainingSeconds = self.calculateProgramFinishTime(activeProgram.end_time)
                     }
-                    result = {
-                        programCode: activeProgram.program_code,
-                        metaUrl: metaUrl,
-                        ...remainingSeconds && {duration: remainingSeconds},
-                        ...activeProgram.program_title && {programTitle: activeProgram.program_title},
-                        ...activeProgram.relation_image && {albumart: activeProgram.relation_image},
-                    }
+                    if (activeProgram) {
+                        result = {
+                            metaUrl: metaUrl,
+                            duration: remainingSeconds,
+                            programCode: activeProgram.program_code,
+                            programTitle: activeProgram.program_title,
+                            albumart: activeProgram.relation_image,
+                        }
 
-                    resolve(result);
+                        resolve(result);
+                    }
+                    else
+                        reject();
                 })
                 .catch( (error) => {
                     self.logger.error("[ControllerPersonalRadio:getKbsRadioProgram] Error=", error);
@@ -112,15 +116,12 @@ function RadioProgram() {
                     queueItem.duration = 0;
                 }
 
-                if (activeProgram.program_title) {
+                if (activeProgram.program_title)
                     vState.name = self.radioCore.radioStations.kbs[channel].title + "("
                         + activeProgram.program_title + ")";
-                    queueItem.name = vState.name;
-                }
-                else {
+                else
                     vState.name = self.radioCore.radioStations.kbs[channel].title
-                    queueItem.name = vState.name;
-                }
+                queueItem.name = vState.name;
 
                 self.context.commandRouter.stateMachine.currentSeek = 0;  // reset Volumio timer
                 self.context.commandRouter.stateMachine.playbackStart=Date.now();

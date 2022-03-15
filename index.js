@@ -183,7 +183,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
               if (state && track.station !== 'sbs') {
                 var vState = self.commandRouter.stateMachine.getState();
                 var queueItem = self.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
-                queueItem.name = track.name + " (" + track.program + ")";
+                queueItem.name = track.name + " (" + track.programTitle + ")";
               }
               return self.commandRouter.stateMachine.syncState(state, self.serviceName);
             });

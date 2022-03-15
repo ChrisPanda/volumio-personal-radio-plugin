@@ -134,22 +134,17 @@ function RadioCore() {
                     if (responseUrl !== null) {
                         response = {
                             ...response,
+                            ...responseProgram,
                             uri: uri,
                             realUri: JSON.parse(responseUrl).real_service_url,
                             name: self.radioStations.kbs[channel].title,
                             disableUiControls: true
                         }
-                    }
-                    response = {
-                        ...response,
-                        metaUrl: responseProgram.metaUrl,
-                        programCode: responseProgram.programCode,
-                        ...responseProgram.duration && {duration: responseProgram.duration},
-                        ...responseProgram.programTitle && {program: responseProgram.programTitle},
-                        ...responseProgram.albumart && {albumart: responseProgram.albumart}
-                    }
 
-                    defer.resolve(response)
+                        defer.resolve(response)
+                    }
+                    else
+                        defer.reject()
                 })
             })
 
@@ -198,13 +193,11 @@ function RadioCore() {
 
                     response = {
                         ...response,
+                        ...responseProgram,
                         uri: uri,
                         realUri: responseUrl,
                         name: self.radioStations.mbc[channel].title,
-                        disableUiControls: true,
-                        ...responseProgram.duration && {duration: responseProgram.duration},
-                        ...responseProgram.programTitle && {program: responseProgram.programTitle},
-                        ...responseProgram.albumart && {albumart: responseProgram.albumart}
+                        disableUiControls: true
                     }
                 }
                 defer.resolve(response);
