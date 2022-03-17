@@ -163,9 +163,15 @@ function RadioProgram() {
                 const pTime =
                     parseInt(radioSchedule[i].StartTime.substring(0, 2)) * 60 +
                     parseInt(radioSchedule[i].StartTime.substring(2, 4));
-                if (pTime <= now.time && now.time - pTime < radioSchedule[i].RunningTime) {
+                const runTime = parseInt(radioSchedule[i].RunningTime)
+                if (pTime <= now.time && now.time - pTime < runTime) {
                     if (radioSchedule[i].Channel === channelData) {
-                        let remainingSeconds = (now.time - pTime) * 60
+                        //let remainingSeconds = (now.time - pTime) * 60
+                        //let remainingSeconds = ((pTime + runTime) - now.time) * 60
+                        const hour = Math.floor((pTime + runTime) / 60);
+                        const minute = (pTime + runTime) - hour * 60;
+                        const endTime = hour.toString()+minute.toString();
+                        let remainingSeconds = self.calculateProgramFinishTime(endTime)
 
                         result = {
                             duration: remainingSeconds,
