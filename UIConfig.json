@@ -32,7 +32,10 @@
             { "value": "21", "label": "KBS 1Radio" },
             { "value": "22", "label": "KBS 2Radio" },
             { "value": "23", "label": "KBS 3Radio" },
-            { "value": "I92", "label": "KBS World" }
+            { "value": "I92", "label": "KBS World" },
+            { "value": "STFM", "label": "MBC Standard FM"},
+            { "value": "FM4U", "label": "MBC FM4U"},
+            { "value": "CHAM", "label": "MBC Internet Radio"}
           ]
         }
       ]

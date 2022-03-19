@@ -136,8 +136,7 @@ function RadioProgram() {
             })
     }
 
-    const getMbcRadioProgram = function (station, channel) {
-        let self = this;
+    const getCurrentDateTime = function() {
         const weekdays = ["월", "화", "수", "목", "금", "토", "일"];
         const zonedDate = utcToZonedTime(new Date(), 'Asia/Seoul');
         const hour = dateGetHours(zonedDate)
@@ -149,6 +148,13 @@ function RadioProgram() {
             time: hour * 60 + minutes,
         };
 
+        return now;
+    }
+
+    const getMbcRadioProgram = function (station, channel) {
+        let self = this;
+
+        const now = getCurrentDateTime()
         let result = {};
         let channelData;
         switch (self.radioCore.radioStations.mbc[channel].channel) {
@@ -166,11 +172,9 @@ function RadioProgram() {
                 const runTime = parseInt(radioSchedule[i].RunningTime)
                 if (pTime <= now.time && now.time - pTime < runTime) {
                     if (radioSchedule[i].Channel === channelData) {
-                        //let remainingSeconds = (now.time - pTime) * 60
-                        //let remainingSeconds = ((pTime + runTime) - now.time) * 60
                         const hour = Math.floor((pTime + runTime) / 60);
                         const minute = (pTime + runTime) - hour * 60;
-                        const endTime = hour.toString()+minute.toString();
+                        const endTime = (hour > 9 ? "" + hour: "0" + hour) + (minute > 9 ? "" + minute: "0" + minute);
                         let remainingSeconds = self.calculateProgramFinishTime(endTime)
 
                         result = {
@@ -233,6 +237,46 @@ function RadioProgram() {
             const result = JSON.parse(response)
             self.mbcRadioSchedule = result.Programs
         })
+    }
+
+    const getMbcRadioSchedule = function (radioChannel, channelName) {
+        let self = this;
+
+        const now = getCurrentDateTime()
+
+        const radioSchedule = self.mbcRadioSchedule;
+        const responseJson = radioSchedule.filter(item => item.LiveDays === now.day && item.Channel === radioChannel);
+
+        let result = "<table><tbody>"
+        responseJson.map(item => {
+            const pTime =
+                parseInt(item.StartTime.substring(0, 2)) * 60 +
+                parseInt(item.StartTime.substring(2, 4));
+            const runTime = parseInt(item.RunningTime)
+            const hour = Math.floor((pTime + runTime) / 60);
+            const minute = (pTime + runTime) - hour * 60;
+            const endTime = (hour > 9 ? "" + hour: "0" + hour) + (minute > 9 ? "" + minute: "0" + minute);
+
+            let resultItem = "<tr><td>" +
+                item.StartTime.substring(0,2) + ":" + item.StartTime.substring(2,4) + "~" +
+                endTime.substring(0,2) + ":" + endTime.substring(2,4) + "<td>" +
+                item.ProgramTitle + "</td></tr>";
+            result = result + resultItem;
+        })
+        result = result + "</tbody></table>"
+
+        let modalData = {
+            title: channelName + " " + self.radioCore.getRadioI18nString('RADIO_PROGRAM'),
+            message: result,
+            size: 'lg',
+            buttons: [{
+                name: 'Close',
+                class: 'btn btn-info',
+                emit: 'closeModals',
+                payload: ''
+            }]
+        }
+        self.context.commandRouter.broadcastMessage("openModal", modalData);
     }
 
     const getKbsRadioSchedule = function (radioChannel, channelName) {
@@ -361,6 +405,7 @@ function RadioProgram() {
         setMbcRadioProgram: setMbcRadioProgram,
 
         getKbsRadioSchedule: getKbsRadioSchedule,
+        getMbcRadioSchedule: getMbcRadioSchedule,
         calculateProgramFinishTime: calculateProgramFinishTime
     }
 }

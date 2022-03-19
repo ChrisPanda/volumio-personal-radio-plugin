@@ -338,5 +338,9 @@ ControllerPersonalRadio.prototype.showRadioProgram = function(data) {
   let radioChannel = data['radio_channel'].value;
   let channelName = data['radio_channel'].label;
 
-  self.radioProgram.getKbsRadioSchedule(radioChannel, channelName)
+  const station = channelName.substring(0, 3);
+  if (station === "KBS")
+    self.radioProgram.getKbsRadioSchedule(radioChannel, channelName)
+  else if (station === "MBC")
+    self.radioProgram.getMbcRadioSchedule(radioChannel, channelName)
 }
