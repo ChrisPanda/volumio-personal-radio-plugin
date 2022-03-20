@@ -180,7 +180,7 @@ ControllerPersonalRadio.prototype.clearAddPlayTrack = function(track) {
           case 'sbs':
           case 'mbc':
             return self.mpdPlugin.getState().then(function (state) {
-              if (state && track.station !== 'sbs') {
+              if (state && track.station !== 'sbs' && track.programTitle !== undefined) {
                 var vState = self.commandRouter.stateMachine.getState();
                 var queueItem = self.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
                 queueItem.name = track.name + " (" + track.programTitle + ")";
@@ -257,8 +257,7 @@ ControllerPersonalRadio.prototype.resume = function() {
       else if (trackinfo.station === 'mbc') {
         self.radioProgram.setMbcRadioProgram(
             trackinfo.station,
-            trackinfo.channel,
-            true
+            trackinfo.channel
         )
       }
     });

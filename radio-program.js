@@ -72,6 +72,11 @@ function RadioProgram() {
         self.radioCore.fetchRadioUrl(station, self.radioCore.baseKbsStreamUrl + metaUrl, "")
             .then( (responseProgram) => {
                 let responseJson = JSON.parse(responseProgram);
+                if (responseJson.data === undefined || responseJson.data[0] === undefined) {
+                    self.logger.error("[ControllerPersonalRadio::setKbsRadioProgram response error=");
+                    return;
+                }
+
                 let activeProgram = responseJson.data[0]
 
                 let vState = self.context.commandRouter.stateMachine.getState();
@@ -162,40 +167,46 @@ function RadioProgram() {
             case "mfm": channelData = "FM4U"; break;
             case "chm": channelData = "CHAM"; break;
         }
-        const radioSchedule = self.mbcRadioSchedule;
+        try {
+            const radioSchedule = self.mbcRadioSchedule;
 
-        for (let i = 0; i < radioSchedule.length; i++) {
-            if (radioSchedule[i].LiveDays === now.day) {
-                const pTime =
-                    parseInt(radioSchedule[i].StartTime.substring(0, 2)) * 60 +
-                    parseInt(radioSchedule[i].StartTime.substring(2, 4));
-                const runTime = parseInt(radioSchedule[i].RunningTime)
-                if (pTime <= now.time && now.time - pTime < runTime) {
-                    if (radioSchedule[i].Channel === channelData) {
-                        const hour = Math.floor((pTime + runTime) / 60);
-                        const minute = (pTime + runTime) - hour * 60;
-                        const endTime = (hour > 9 ? "" + hour: "0" + hour) + (minute > 9 ? "" + minute: "0" + minute);
-                        let remainingSeconds = self.calculateProgramFinishTime(endTime)
+            for (let i = 0; i < radioSchedule.length; i++) {
+                if (radioSchedule[i].LiveDays === now.day) {
+                    const pTime =
+                        parseInt(radioSchedule[i].StartTime.substring(0, 2)) * 60 +
+                        parseInt(radioSchedule[i].StartTime.substring(2, 4));
+                    const runTime = parseInt(radioSchedule[i].RunningTime)
+                    if (pTime <= now.time && now.time - pTime < runTime) {
+                        if (radioSchedule[i].Channel === channelData) {
+                            const hour = Math.floor((pTime + runTime) / 60);
+                            const minute = (pTime + runTime) - hour * 60;
+                            const endTime = (hour > 9 ? "" + hour: "0" + hour) + (minute > 9 ? "" + minute: "0" + minute);
+                            let remainingSeconds = self.calculateProgramFinishTime(endTime)
 
-                        result = {
-                            duration: remainingSeconds,
-                            programTitle: radioSchedule[i].ProgramTitle,
-                            albumart: radioSchedule[i].Picture
+                            result = {
+                                duration: remainingSeconds,
+                                programTitle: radioSchedule[i].ProgramTitle,
+                                albumart: radioSchedule[i].Picture
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
             }
+        }
+        catch (error) {
+            this.logger.error("[ControllerPersonalRadio::getMbcRadioProgram] Error=", error);
         }
 
         console.log("mbc radio schedule===", result);
         return result;
     }
 
-    const setMbcRadioProgram = function (station, channel, forceUpdate) {
+    const setMbcRadioProgram = function (station, channel) {
         let self = this;
 
-        const responseProgram = self.getMbcRadioProgram(station, channel)
+        const responseProgram = self.getMbcRadioProgram(station, channel);
+        if (responseProgram.duration === undefined) return;
 
         let vState = self.context.commandRouter.stateMachine.getState();
         let queueItem = self.context.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
@@ -223,7 +234,7 @@ function RadioProgram() {
 
         self.timer = new RPTimer(
             self.setMbcRadioProgram.bind(this),
-            [station, channel, false],
+            [station, channel],
             remainingSeconds
         );
     }
@@ -244,39 +255,44 @@ function RadioProgram() {
 
         const now = getCurrentDateTime()
 
-        const radioSchedule = self.mbcRadioSchedule;
-        const responseJson = radioSchedule.filter(item => item.LiveDays === now.day && item.Channel === radioChannel);
+        try {
+            const radioSchedule = self.mbcRadioSchedule;
+            const responseJson = radioSchedule.filter(item => item.LiveDays === now.day && item.Channel === radioChannel);
 
-        let result = "<table><tbody>"
-        responseJson.map(item => {
-            const pTime =
-                parseInt(item.StartTime.substring(0, 2)) * 60 +
-                parseInt(item.StartTime.substring(2, 4));
-            const runTime = parseInt(item.RunningTime)
-            const hour = Math.floor((pTime + runTime) / 60);
-            const minute = (pTime + runTime) - hour * 60;
-            const endTime = (hour > 9 ? "" + hour: "0" + hour) + (minute > 9 ? "" + minute: "0" + minute);
+            let result = "<table><tbody>"
+            responseJson.map(item => {
+                const pTime =
+                    parseInt(item.StartTime.substring(0, 2)) * 60 +
+                    parseInt(item.StartTime.substring(2, 4));
+                const runTime = parseInt(item.RunningTime)
+                const hour = Math.floor((pTime + runTime) / 60);
+                const minute = (pTime + runTime) - hour * 60;
+                const endTime = (hour > 9 ? "" + hour : "0" + hour) + (minute > 9 ? "" + minute : "0" + minute);
 
-            let resultItem = "<tr><td>" +
-                item.StartTime.substring(0,2) + ":" + item.StartTime.substring(2,4) + "~" +
-                endTime.substring(0,2) + ":" + endTime.substring(2,4) + "<td>" +
-                item.ProgramTitle + "</td></tr>";
-            result = result + resultItem;
-        })
-        result = result + "</tbody></table>"
+                let resultItem = "<tr><td>" +
+                    item.StartTime.substring(0, 2) + ":" + item.StartTime.substring(2, 4) + "~" +
+                    endTime.substring(0, 2) + ":" + endTime.substring(2, 4) + "<td>" +
+                    item.ProgramTitle + "</td></tr>";
+                result = result + resultItem;
+            })
+            result = result + "</tbody></table>"
 
-        let modalData = {
-            title: channelName + " " + self.radioCore.getRadioI18nString('RADIO_PROGRAM'),
-            message: result,
-            size: 'lg',
-            buttons: [{
-                name: 'Close',
-                class: 'btn btn-info',
-                emit: 'closeModals',
-                payload: ''
-            }]
+            let modalData = {
+                title: channelName + " " + self.radioCore.getRadioI18nString('RADIO_PROGRAM'),
+                message: result,
+                size: 'lg',
+                buttons: [{
+                    name: 'Close',
+                    class: 'btn btn-info',
+                    emit: 'closeModals',
+                    payload: ''
+                }]
+            }
+            self.context.commandRouter.broadcastMessage("openModal", modalData);
         }
-        self.context.commandRouter.broadcastMessage("openModal", modalData);
+        catch (error) {
+            this.logger.error("[ControllerPersonalRadio::getMbcRadioSchedule] Error=", error);
+        }
     }
 
     const getKbsRadioSchedule = function (radioChannel, channelName) {
@@ -333,7 +349,13 @@ function RadioProgram() {
                             }]
                         }
                         self.context.commandRouter.broadcastMessage("openModal", modalData);
-                    });
+                    })
+                    .catch( (error) => {
+                        self.logger.error("[ControllerPersonalRadio::getKbsRadioSchedule] Error=", error)
+                    })
+            })
+            .catch( (error) => {
+                self.logger.error("[ControllerPersonalRadio::getKbsRadioSchedule] reqTs error=", error)
             });
     }
 
@@ -374,6 +396,8 @@ function RadioProgram() {
     const startRadioProgram = function(track) {
         let self=this;
 
+        if (track.duration === undefined) return
+
         if (track.station === "kbs")
             self.timer = new RPTimer(self.setKbsRadioProgram.bind(this),
                 [track.station, track.channel, track.programCode, track.metaUrl, true],
@@ -381,7 +405,7 @@ function RadioProgram() {
             );
         else if (track.station === "mbc")
             self.timer = new RPTimer(self.setMbcRadioProgram.bind(this),
-                [track.station, track.channel, true],
+                [track.station, track.channel],
                 track.duration
             );
     }
