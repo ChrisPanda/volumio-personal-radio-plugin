@@ -244,6 +244,11 @@ ControllerPersonalRadio.prototype.resume = function() {
 
   return self.mpdPlugin.resume().then(function () {
     return self.mpdPlugin.getState().then(function (state) {
+      if (state && trackinfo.station !== 'sbs' && trackinfo.programTitle !== undefined) {
+        var vState = self.commandRouter.stateMachine.getState();
+        var queueItem = self.commandRouter.stateMachine.playQueue.arrayQueue[vState.position];
+        queueItem.name = trackinfo.name + " (" + trackinfo.programTitle + ")";
+      }
 
       self.commandRouter.stateMachine.syncState(state, self.serviceName);
       if (trackinfo.station === 'kbs') {
